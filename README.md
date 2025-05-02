@@ -32,12 +32,25 @@ choco install uv
     uv sync
     ```
 
-    4. To add a dependency, use:
-        ```bash
-        uv add <dependency-name>
+4. To add a dependency, use:
+    ```bash
+    uv add <dependency-name>
+    ```
+
+5. To remove a dependency, use:
+    ```bash
+    uv remove <dependency-name>
         ```
 
-    5. To remove a dependency, use:
+6. To run a Python file, use:
+    ```bash
+    uv run python <file-name>.py
+    ```
+    or  activate the virtual environment, with:
         ```bash
-        uv remove <dependency-name>
+        source .venv/bin/activate
+        ```
+    Once activated, you can run your Python file directly:
+        ```bash
+        python <file-name>.py
         ```
