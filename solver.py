@@ -38,6 +38,72 @@ def get_road_distance_and_time(coords1, coords2):
     return distance_km, duration_h
 
 
+import math
+
+# Paramètres à ajuster
+AVG_PLANE_SPEED_KMH = 800     # km/h en croisière
+OVERHEAD_TIME_H    = 1.0      # h total (embarquement + débarquement)
+
+def haversine_distance(coords1, coords2):
+    """
+    Calcule la distance grand-cercle (km) entre deux points (lat, lon).
+    """
+    lat1, lon1 = coords1
+    lat2, lon2 = coords2
+    R = 6371.0  # rayon de la Terre en km
+    φ1, φ2 = math.radians(lat1), math.radians(lat2)
+    Δφ = math.radians(lat2 - lat1)
+    Δλ = math.radians(lon2 - lon1)
+    a = math.sin(Δφ/2)**2 + math.cos(φ1)*math.cos(φ2)*math.sin(Δλ/2)**2
+    return 2 * R * math.asin(math.sqrt(a))
+
+def get_airplane_distance_and_time_proxy(coords1, coords2,
+                                         speed_kmh=AVG_PLANE_SPEED_KMH,
+                                         overhead_h=OVERHEAD_TIME_H):
+    """
+    Retourne :
+      - distance_km : distance grand‐cercle entre coords1 et coords2
+      - time_h       : temps total estimé = overhead + distance/speed
+    """
+    dist_km = haversine_distance(coords1, coords2)
+    flight_time_h = dist_km / speed_kmh
+    total_time_h = flight_time_h + overhead_h
+    return dist_km, total_time_h
+
+
+import math
+
+# Paramètres à ajuster
+AVG_PLANE_SPEED_KMH = 800     # km/h en croisière
+OVERHEAD_TIME_H    = 1.0      # h total (embarquement + débarquement)
+
+def haversine_distance(coords1, coords2):
+    """
+    Calcule la distance grand-cercle (km) entre deux points (lat, lon).
+    """
+    lat1, lon1 = coords1
+    lat2, lon2 = coords2
+    R = 6371.0  # rayon de la Terre en km
+    φ1, φ2 = math.radians(lat1), math.radians(lat2)
+    Δφ = math.radians(lat2 - lat1)
+    Δλ = math.radians(lon2 - lon1)
+    a = math.sin(Δφ/2)**2 + math.cos(φ1)*math.cos(φ2)*math.sin(Δλ/2)**2
+    return 2 * R * math.asin(math.sqrt(a))
+
+def get_airplane_distance_and_time_proxy(coords1, coords2,
+                                         speed_kmh=AVG_PLANE_SPEED_KMH,
+                                         overhead_h=OVERHEAD_TIME_H):
+    """
+    Retourne :
+      - distance_km : distance grand‐cercle entre coords1 et coords2
+      - time_h       : temps total estimé = overhead + distance/speed
+    """
+    dist_km = haversine_distance(coords1, coords2)
+    flight_time_h = dist_km / speed_kmh
+    total_time_h = flight_time_h + overhead_h
+    return dist_km, total_time_h
+
+
 cities = pd.read_csv("data/cities.csv").to_dict(orient="records")
 
 
@@ -186,6 +252,7 @@ def test_road_distance():
     distance, time = get_road_distance_and_time(ny_coords, boston_coords)
     print(f"Road distance between New York and Boston: {distance:.2f} km")
     print(f"Estimated travel time: {time:.2f} hours")
+
 
 if __name__ == "__main__":
     test_road_distance()
