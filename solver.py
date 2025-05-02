@@ -1,6 +1,7 @@
 import networkx as nx
 import gurobipy as gp
 from gurobipy import GRB
+import pandas as pd
 
 import requests
 
@@ -37,38 +38,8 @@ def get_road_distance_and_time(coords1, coords2):
     return distance_km, duration_h
 
 
-cities = [
-    {"name": "New York",            "has_port": True,  "has_airport": True},
-    {"name": "Los Angeles",         "has_port": True,  "has_airport": True},
-    {"name": "Chicago",             "has_port": True,  "has_airport": True},
-    {"name": "Houston",             "has_port": True,  "has_airport": True},
-    {"name": "Phoenix",             "has_port": False, "has_airport": True},
-    {"name": "Philadelphia",        "has_port": True,  "has_airport": True},
-    {"name": "San Antonio",         "has_port": False, "has_airport": True},
-    {"name": "San Diego",           "has_port": True,  "has_airport": True},
-    {"name": "Dallas",              "has_port": False, "has_airport": True},
-    {"name": "San Jose",            "has_port": False, "has_airport": True},
-    {"name": "Austin",              "has_port": False, "has_airport": True},
-    {"name": "Jacksonville",        "has_port": True,  "has_airport": True},
-    {"name": "Fort Worth",          "has_port": False, "has_airport": True},
-    {"name": "Columbus",            "has_port": False, "has_airport": True},
-    {"name": "Charlotte",           "has_port": False, "has_airport": True},
-    {"name": "San Francisco",       "has_port": True,  "has_airport": True},
-    {"name": "Indianapolis",        "has_port": False, "has_airport": True},
-    {"name": "Seattle",             "has_port": True,  "has_airport": True},
-    {"name": "Denver",              "has_port": False, "has_airport": True},
-    {"name": "Washington",          "has_port": True,  "has_airport": True},
-    {"name": "Boston",              "has_port": True,  "has_airport": True},
-    {"name": "El Paso",             "has_port": False, "has_airport": True},
-    {"name": "Nashville",           "has_port": False, "has_airport": True},
-    {"name": "Detroit",             "has_port": True,  "has_airport": True},
-    {"name": "Oklahoma City",       "has_port": False, "has_airport": True},
-    {"name": "Portland",            "has_port": True,  "has_airport": True},
-    {"name": "Las Vegas",           "has_port": False, "has_airport": True},
-    {"name": "Memphis",             "has_port": True,  "has_airport": True},
-    {"name": "Baltimore",           "has_port": True,  "has_airport": True},
-    {"name": "Louisville",          "has_port": True,  "has_airport": True},
-]
+cities = pd.read_csv("data/cities.csv").to_dict(orient="records")
+
 
 def build_city_graph(cities):
     G = nx.DiGraph()
