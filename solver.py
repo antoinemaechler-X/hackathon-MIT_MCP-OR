@@ -19,7 +19,7 @@ EMISSION_PER_TKM = {
     'airplane': 600
 }
 
-def get_road_distance_and_time(coords1, coords2):
+def get_road_distance_and_time(coords1, coords2):## duplicated in src/data_preprocess/get_roads.py
     """
     Compute road distance (km) and travel time (hours) using OSRM between two coordinate pairs.
     :param coords1: (lat, lon) tuple for origin
@@ -44,7 +44,7 @@ import math
 AVG_PLANE_SPEED_KMH = 800     # km/h en croisière
 OVERHEAD_TIME_H    = 1.0      # h total (embarquement + débarquement)
 
-def haversine_distance(coords1, coords2):
+def haversine_distance(coords1, coords2):## duplicated in src/data_preprocess/get_roads.py
     """
     Calcule la distance grand-cercle (km) entre deux points (lat, lon).
     """
@@ -59,7 +59,7 @@ def haversine_distance(coords1, coords2):
 
 def get_airplane_distance_and_time_proxy(coords1, coords2,
                                          speed_kmh=AVG_PLANE_SPEED_KMH,
-                                         overhead_h=OVERHEAD_TIME_H):
+                                         overhead_h=OVERHEAD_TIME_H):## duplicated in src/data_preprocess/get_roads.py
     """
     Retourne :
       - distance_km : distance grand‐cercle entre coords1 et coords2
@@ -77,7 +77,7 @@ import math
 AVG_PLANE_SPEED_KMH = 800     # km/h en croisière
 OVERHEAD_TIME_H    = 1.0      # h total (embarquement + débarquement)
 
-def haversine_distance(coords1, coords2):
+def haversine_distance(coords1, coords2): ## duplicated in src/data_preprocess/get_roads.py
     """
     Calcule la distance grand-cercle (km) entre deux points (lat, lon).
     """
@@ -92,7 +92,7 @@ def haversine_distance(coords1, coords2):
 
 def get_airplane_distance_and_time_proxy(coords1, coords2,
                                          speed_kmh=AVG_PLANE_SPEED_KMH,
-                                         overhead_h=OVERHEAD_TIME_H):
+                                         overhead_h=OVERHEAD_TIME_H):## duplicated in src/data_preprocess/get_roads.py
     """
     Retourne :
       - distance_km : distance grand‐cercle entre coords1 et coords2
