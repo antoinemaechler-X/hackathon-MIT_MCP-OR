@@ -2,6 +2,41 @@ import networkx as nx
 import gurobipy as gp
 from gurobipy import GRB
 
+import requests
+
+# Cost and emission factors per ton-kilometer for each transport mode
+COST_PER_TKM = {
+    'road': 0.04,      # $ per t·km
+    'train': 0.02,
+    'boat': 0.01,
+    'airplane': 1.0
+}
+EMISSION_PER_TKM = {
+    'road': 100,       # g CO₂ per t·km
+    'train': 30,
+    'boat': 10,
+    'airplane': 600
+}
+
+def get_road_distance_and_time(coords1, coords2):
+    """
+    Compute road distance (km) and travel time (hours) using OSRM between two coordinate pairs.
+    :param coords1: (lat, lon) tuple for origin
+    :param coords2: (lat, lon) tuple for destination
+    :return: (distance_km, duration_h)
+    """
+    lat1, lon1 = coords1
+    lat2, lon2 = coords2
+    url = f"http://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false"
+    resp = requests.get(url)
+    resp.raise_for_status()
+    data = resp.json()
+    route = data['routes'][0]
+    distance_km = route['distance'] / 1000.0
+    duration_h = route['duration'] / 3600.0
+    return distance_km, duration_h
+
+
 cities = [
     {"name": "New York",            "has_port": True,  "has_airport": True},
     {"name": "Los Angeles",         "has_port": True,  "has_airport": True},
@@ -171,8 +206,18 @@ def solve_shortest_path(graph, source, target, alpha=1.0, beta=1.0, gamma=1.0):
     return path, model.ObjVal
 
 
-# Example usage:
+def test_road_distance():
+    # New York coordinates (approximate)
+    ny_coords = (40.7128, -74.0060)
+    # Boston coordinates (approximate)
+    boston_coords = (42.3601, -71.0589)
+    
+    distance, time = get_road_distance_and_time(ny_coords, boston_coords)
+    print(f"Road distance between New York and Boston: {distance:.2f} km")
+    print(f"Estimated travel time: {time:.2f} hours")
+
 if __name__ == "__main__":
+    test_road_distance()
     city_graph = build_city_graph(cities)
     source_node = list(city_graph.nodes())[0]
     target_node = list(city_graph.nodes())[-1]
