@@ -1,1 +1,3 @@
 searoute/
+.venv/
+__pycache__/
