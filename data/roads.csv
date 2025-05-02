@@ -1,2 +1,37 @@
-type, origin, destination, distance, time
-truck, Chicago, New York, 790, 12
+type,route_name,origin,destination,time,distance,CO2,price,olon,olat,dlon,dlat
+ship,New York-Los Angeles,New York,Los Angeles,,23877.16,,,-74.0060152,40.7127281,-118.243683,34.052235
+ship,New York-Chicago,New York,Chicago,,4960.26,,,-74.0060152,40.7127281,-87.6244212,41.8755616
+ship,New York-San Diego,New York,San Diego,,23768.79,,,-74.0060152,40.7127281,-117.162772,32.7174202
+ship,New York-San Francisco,New York,San Francisco,,24436.78,,,-74.0060152,40.7127281,-122.4193286,37.7792588
+ship,New York-Seattle,New York,Seattle,,25974.53,,,-74.0060152,40.7127281,-122.330062,47.6038321
+ship,New York-Washington,New York,Washington,,758.79,,,-74.0060152,40.7127281,-77.0365427,38.8950368
+ship,New York-Boston,New York,Boston,,458.0,,,-74.0060152,40.7127281,-71.060511,42.3554334
+ship,New York-Baltimore,New York,Baltimore,,776.6,,,-74.0060152,40.7127281,-76.61219,39.290386
+ship,Los Angeles-Chicago,Los Angeles,Chicago,,27478.59,,,-118.243683,34.052235,-87.6244212,41.8755616
+ship,Los Angeles-San Diego,Los Angeles,San Diego,,222.89,,,-118.243683,34.052235,-117.162772,32.7174202
+ship,Los Angeles-San Francisco,Los Angeles,San Francisco,,760.22,,,-118.243683,34.052235,-122.4193286,37.7792588
+ship,Los Angeles-Seattle,Los Angeles,Seattle,,2297.97,,,-118.243683,34.052235,-122.330062,47.6038321
+ship,Los Angeles-Washington,Los Angeles,Washington,,24011.25,,,-118.243683,34.052235,-77.0365427,38.8950368
+ship,Los Angeles-Boston,Los Angeles,Boston,,23976.02,,,-118.243683,34.052235,-71.060511,42.3554334
+ship,Los Angeles-Baltimore,Los Angeles,Baltimore,,24029.05,,,-118.243683,34.052235,-76.61219,39.290386
+ship,Chicago-San Diego,Chicago,San Diego,,27370.22,,,-87.6244212,41.8755616,-117.162772,32.7174202
+ship,Chicago-San Francisco,Chicago,San Francisco,,28038.21,,,-87.6244212,41.8755616,-122.4193286,37.7792588
+ship,Chicago-Seattle,Chicago,Seattle,,29575.96,,,-87.6244212,41.8755616,-122.330062,47.6038321
+ship,Chicago-Washington,Chicago,Washington,,5545.29,,,-87.6244212,41.8755616,-77.0365427,38.8950368
+ship,Chicago-Boston,Chicago,Boston,,4684.75,,,-87.6244212,41.8755616,-71.060511,42.3554334
+ship,Chicago-Baltimore,Chicago,Baltimore,,5563.09,,,-87.6244212,41.8755616,-76.61219,39.290386
+ship,San Diego-San Francisco,San Diego,San Francisco,,886.08,,,-117.162772,32.7174202,-122.4193286,37.7792588
+ship,San Diego-Seattle,San Diego,Seattle,,2423.84,,,-117.162772,32.7174202,-122.330062,47.6038321
+ship,San Diego-Washington,San Diego,Washington,,23902.87,,,-117.162772,32.7174202,-77.0365427,38.8950368
+ship,San Diego-Boston,San Diego,Boston,,23867.65,,,-117.162772,32.7174202,-71.060511,42.3554334
+ship,San Diego-Baltimore,San Diego,Baltimore,,23920.68,,,-117.162772,32.7174202,-76.61219,39.290386
+ship,San Francisco-Seattle,San Francisco,Seattle,,1617.49,,,-122.4193286,37.7792588,-122.330062,47.6038321
+ship,San Francisco-Washington,San Francisco,Washington,,24570.87,,,-122.4193286,37.7792588,-77.0365427,38.8950368
+ship,San Francisco-Boston,San Francisco,Boston,,24535.64,,,-122.4193286,37.7792588,-71.060511,42.3554334
+ship,San Francisco-Baltimore,San Francisco,Baltimore,,24588.67,,,-122.4193286,37.7792588,-76.61219,39.290386
+ship,Seattle-Washington,Seattle,Washington,,26108.62,,,-122.330062,47.6038321,-77.0365427,38.8950368
+ship,Seattle-Boston,Seattle,Boston,,26073.39,,,-122.330062,47.6038321,-71.060511,42.3554334
+ship,Seattle-Baltimore,Seattle,Baltimore,,26126.43,,,-122.330062,47.6038321,-76.61219,39.290386
+ship,Washington-Boston,Washington,Boston,,1126.52,,,-77.0365427,38.8950368,-71.060511,42.3554334
+ship,Washington-Baltimore,Washington,Baltimore,,0.0,,,-77.0365427,38.8950368,-76.61219,39.290386
+ship,Boston-Baltimore,Boston,Baltimore,,1144.33,,,-71.060511,42.3554334,-76.61219,39.290386

@@ -1,5 +1,6 @@
 import pandas as pd
 import math
+import requests
 
 AVG_PLANE_SPEED_KMH = 800     # km/h en croisière
 OVERHEAD_TIME_H    = 1.0      # h total (embarquement + débarquement)
@@ -29,6 +30,8 @@ import math
 # Paramètres à ajuster
 AVG_PLANE_SPEED_KMH = 800     # km/h en croisière
 OVERHEAD_TIME_H    = 1.0      # h total (embarquement + débarquement)
+
+
 
 def haversine_distance(coords1, coords2):## duplicated in src/data_preprocess/get_roads.py
     """
@@ -87,3 +90,59 @@ def get_airplane_distance_and_time_proxy(coords1, coords2,
     flight_time_h = dist_km / speed_kmh
     total_time_h = flight_time_h + overhead_h
     return dist_km, total_time_h
+
+
+if __name__ == "__main__":
+    cities_df = pd.read_csv("data/cities.csv")
+
+    # airplane
+    rows = []
+
+    for i, row in cities_df.iterrows():
+        for j, row2 in cities_df.iterrows():
+            if i != j and row["has_airport"] and row2["has_airport"]:
+                coords1 = (row["lat"], row["lon"])
+                coords2 = (row2["lat"], row2["lon"])
+                distance, time = get_airplane_distance_and_time_proxy(coords1, coords2)
+                rows.append({
+                    "type": 'plane',
+                    "route_name": f"{row['name']}-{row2['name']}",
+                    "type": "airplane",
+                    "origin": row["name"],
+                    "destination": row2["name"],
+                    "olat": row["lat"],
+                    "olon": row["lon"],
+                    "dlat": row2["lat"],
+                    "dlon": row2["lon"],
+                    "distance": distance,
+                    "time": time
+                })
+
+# Create DataFrame after the loop
+    airplane_df = pd.DataFrame(rows)
+
+    
+    road_rows = []
+    for i, row in cities_df.iterrows():
+        for j, row2 in cities_df.iterrows():
+            if i != j:
+                coords1 = (row["lat"], row["lon"])
+                coords2 = (row2["lat"], row2["lon"])
+                distance, time = get_road_distance_and_time(coords1, coords2)
+                road_rows.append({
+                    "type": "road",
+                    "route_name": f"{row['name']}-{row2['name']}",
+                    "type": "road",
+                    "origin": row["name"],
+                    "destination": row2["name"],
+                    "olat": row["lat"],
+                    "olon": row["lon"],
+                    "dlat": row2["lat"],
+                    "dlon": row2["lon"],
+                    "distance": distance,
+                    "time": time
+                })
+    road_df = pd.DataFrame(road_rows)  
+    airplane_df.to_csv("data/airplane_routes.csv", index=False)
+    road_df.to_csv("data/road_routes.csv", index=False) 
+
