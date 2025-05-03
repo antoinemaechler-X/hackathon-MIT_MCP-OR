@@ -9,6 +9,8 @@ import sys
 
 # Function to get coordinates
 def get_coordinates(city):
+    # Set up geolocator
+    geolocator = Nominatim(user_agent="city-geocoder")
     try:
         location = geolocator.geocode(city)
         if location:
@@ -16,6 +18,16 @@ def get_coordinates(city):
     except:
         return pd.Series([None, None])
     return pd.Series([None, None])
+
+def apply_lat_long(df):
+    
+
+    # Apply to each row with a pause to avoid rate limiting
+    df[['lat', 'lon']] = df['name'].apply(lambda x: get_coordinates(x) if pd.notna(x) else pd.Series([None, None]))
+        # Add pause between requests
+    sleep(1)
+
+    return df
 
 
 if __name__ == "__main__":
@@ -36,12 +48,7 @@ if __name__ == "__main__":
     df = pd.read_csv(path)
 
     # Set up geolocato
-    geolocator = Nominatim(user_agent="city-geocoder")
-
-    # Apply to each row with a pause to avoid rate limiting
-    df[['lat', 'lon']] = df['name'].apply(lambda x: get_coordinates(x) if pd.notna(x) else pd.Series([None, None]))
-        # Add pause between requests
-    sleep(1)
+    df = apply_lat_long(df)
 
     # Save result
     df.to_csv(new_path, index=False)

@@ -37,31 +37,51 @@ def has_osm_port(city_name):
 
 # Filter cities with ports
 
+def get_routes_from_city(df, city:pd.Series):
+    """
+    Generate routes between the old cities and the new one.
+    :param df: DataFrame containing city names and coordinates
+    :param city: row
+    :return: DataFrame with route information
+    """
+    ports_df = df[df['has_port'] == True, df['name'] != city['name']]
+    if ports_df.empty:
+        return pd.DataFrame()
+    routes = []
+
+    for index, row in ports_df.iterrows():
+        route = {
+            "route_name": f"{row['name']}-{city['name']}",
+            "olon": row['lon'],
+            "olat": row['lat'],
+            "dlon": city['lon'],
+            "dlat": city['lat']
+        }
+        routes.append(route)
+    for index, row in ports_df.iterrows():
+        route = {
+            "route_name": f"{city['name']}-{row['name']}",
+            "olon": city['lon'],
+            "olat": city['lat'],
+            "dlon": row['lon'],
+            "dlat": row['lat']
+        }
+        routes.append(route)
+    return pd.DataFrame(routes)
+
 def get_routes(df):
     """
     Generate routes between cities with ports.
     :param df: DataFrame containing city names and coordinates
     :return: DataFrame with route information
     """
-    # Filter cities with ports
-    ports_df = df[df['has_port'] == True]
-
-    # Generate all pairs of port cities
-    pairs = list(itertools.combinations(ports_df.itertuples(index=False), 2))
-
-    # Build route data
     routes = []
-    for origin, destination in pairs:
-        route = {
-            "route_name": f"{origin.name}-{destination.name}",
-            "olon": origin.lon,
-            "olat": origin.lat,
-            "dlon": destination.lon,
-            "dlat": destination.lat
-        }
-        routes.append(route)
-
-    return pd.DataFrame(routes)
+    for index, row in df.iterrows():
+        routes_df = get_routes_from_city(df, row)
+        if not routes_df.empty:
+            routes.append(routes_df)
+    return pd.concat(routes, ignore_index=True) if routes else pd.DataFrame()
+    
 
 if __name__ == "__main__":
     # Load your CSV
