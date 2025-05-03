@@ -22,7 +22,7 @@ EMISSION_PER_TKM = {
 }
 
 TRANSITION_TIME_HR = 0.5
-TRANSITION_COST = 0
+TRANSITION_COST = 0.2
 
 def get_road_distance_and_time(coords1, coords2):## duplicated in src/data_preprocess/get_roads.py
     """
@@ -251,4 +251,25 @@ def test_road_distance():
     distance, time = get_road_distance_and_time(ny_coords, boston_coords)
     print(f"Road distance between New York and Boston: {distance:.2f} km")
     print(f"Estimated travel time: {time:.2f} hours")
+
+
+if __name__ == "__main__":
+    cities_df = pd.read_csv("data/cities.csv")
+    routes_df = pd.read_csv("data/routes_clean.csv")
+    start = "Los Angeles"
+    end = "Boston"
+    from src.data_preprocess.add_city import add_city
+    cities_df, routes_df = add_city(cities_df, routes_df, start, has_airport=False)
+    cities_df, routes_df = add_city(cities_df, routes_df, end, has_airport=False)
+
+    graph = build_city_graph(cities_df.to_dict(orient="records"), routes_df.to_dict(orient="records"))
+    source_node = get_node(start)
+    target_node = get_node(end)
+    
+
+    alpha = 1
+    beta = 1
+    gamma = 1
+    path, total_cost, time_cost, cost_cost, emissions_cost = solve_shortest_path(graph, source_node, target_node, alpha, beta, gamma)
+    print(f"Path: {path}")
 
