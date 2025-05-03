@@ -61,9 +61,13 @@ choco install uv
         ```bash
         python <file-name>.py
         ```
+    
+        uv sync
+    will automatically install the dependencies listed in the requirements.txt file.
 
 
 ## Running the app
+To run the app, you need to have a gurobi license (free for students and academics). You can get it from the [Gurobi website](https://www.gurobi.com/downloads/).
 launching the backend server:
 ```bash
     uvicorn main:app --reload
