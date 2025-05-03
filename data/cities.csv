@@ -1,31 +1,31 @@
-name,has_port,has_airport
-New York,True,True
-Los Angeles,True,True
-Chicago,True,True
-Houston,True,True
-Phoenix,False,True
-Philadelphia,True,True
-San Antonio,False,True
-San Diego,True,True
-Dallas,False,True
-San Jose,False,True
-Austin,False,True
-Jacksonville,True,True
-Fort Worth,False,True
-Columbus,False,True
-Charlotte,False,True
-San Francisco,True,True
-Indianapolis,False,True
-Seattle,True,True
-Denver,False,True
-Washington,True,True
-Boston,True,True
-El Paso,False,True
-Nashville,False,True
-Detroit,True,True
-Oklahoma City,False,True
-Portland,True,True
-Las Vegas,False,True
-Memphis,True,True
-Baltimore,True,True
-Louisville,True,True
+name,has_port,has_airport,lat,lon
+New York,True,True,40.7127281,-74.0060152
+Los Angeles,True,True,34.0536909,-118.242766
+Chicago,True,True,41.8755616,-87.6244212
+Houston,False,True,29.7589382,-95.3676974
+Phoenix,False,True,33.4484367,-112.074141
+Philadelphia,False,True,39.9527237,-75.1635262
+San Antonio,False,True,29.4246002,-98.4951405
+San Diego,True,True,32.7174202,-117.162772
+Dallas,False,True,32.7762719,-96.7968559
+San Jose,False,True,37.3361663,-121.890591
+Austin,False,True,30.2711286,-97.7436995
+Jacksonville,False,True,30.3321838,-81.655651
+Fort Worth,False,True,32.753177,-97.3327459
+Columbus,False,True,39.9622601,-83.0007065
+Charlotte,False,True,35.2272086,-80.8430827
+San Francisco,True,True,37.7792588,-122.4193286
+Indianapolis,False,True,39.7683331,-86.1583502
+Seattle,True,True,47.6038321,-122.330062
+Denver,False,True,39.7392364,-104.984862
+Washington,True,True,38.8950368,-77.0365427
+Boston,True,True,42.3554334,-71.060511
+El Paso,False,True,31.7601164,-106.4870404
+Nashville,False,True,36.1622767,-86.7742984
+Detroit,False,True,42.3315509,-83.0466403
+Oklahoma City,False,True,35.4729886,-97.5170536
+Portland,False,True,45.5202471,-122.674194
+Las Vegas,False,True,36.171697,-115.1463536
+Memphis,False,True,35.1460249,-90.0517638
+Baltimore,True,True,39.2908816,-76.610759
+Louisville,False,True,38.2542376,-85.759407
