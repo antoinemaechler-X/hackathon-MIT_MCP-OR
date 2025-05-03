@@ -13,11 +13,9 @@ def send_to_claude(message: str) -> None:
     if not message:
         return
 
-    # Safely quote the message so it won't break the shell command
-    safe_msg = shlex.quote(message)
     try:
         # You can switch to run() if you want to wait for completion
-        subprocess.Popen([CLAUDE_SCRIPT, safe_msg])
+        subprocess.Popen([CLAUDE_SCRIPT, message])
     except FileNotFoundError:
         print(f"Error: script not found at {CLAUDE_SCRIPT}")
     except Exception as e:

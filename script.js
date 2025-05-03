@@ -30,10 +30,79 @@ function initMap() {
   }).addTo(map);
 }
 
-function updateMap(startCoords, endCoords) {
-  // Clear existing markers
+// Colors for different transport modes
+const TRANSPORT_COLORS = {
+  road: "#4CAF50", // Green
+  train: "#2196F3", // Blue
+  boat: "#9C27B0", // Purple
+  airplane: "#FF9800", // Orange
+};
+
+function drawRoute(route) {
+  // Clear any existing route
+  if (window.routeLayer) {
+    map.removeLayer(window.routeLayer);
+  }
+
+  // Create a new layer for the route
+  window.routeLayer = L.layerGroup().addTo(map);
+
+  // Draw each segment of the route
+  route.forEach((segment, index) => {
+    const { from, to, mode } = segment;
+    const color = TRANSPORT_COLORS[mode] || "#000000";
+
+    // Create a curved line between the points
+    const latlngs = [
+      [from[0], from[1]],
+      [to[0], to[1]],
+    ];
+
+    // Create a curved line using a bezier curve
+    const curve = L.curve(
+      [
+        "M",
+        latlngs[0],
+        "Q",
+        [
+          (latlngs[0][0] + latlngs[1][0]) / 2 + 2,
+          (latlngs[0][1] + latlngs[1][1]) / 2,
+        ],
+        latlngs[1],
+      ],
+      {
+        color: color,
+        weight: 5,
+        opacity: 0.7,
+        dashArray: mode === "airplane" ? "10, 10" : undefined, // Dashed line for airplane
+        className: `route-segment-${mode}`,
+      }
+    ).addTo(window.routeLayer);
+
+    // Add a small circle at the start of each segment (except first)
+    if (index > 0) {
+      L.circleMarker(latlngs[0], {
+        radius: 5,
+        fillColor: color,
+        color: "#fff",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.7,
+      }).addTo(window.routeLayer);
+    }
+  });
+
+  // Fit the map to show the entire route
+  const bounds = window.routeLayer.getBounds();
+  map.fitBounds(bounds, { padding: [50, 50] });
+}
+
+// Modify the existing updateMap function to handle routes
+function updateMap(startCoords, endCoords, route = null) {
+  // Clear existing markers and route
   if (startMarker) map.removeLayer(startMarker);
   if (endMarker) map.removeLayer(endMarker);
+  if (window.routeLayer) map.removeLayer(window.routeLayer);
 
   // Add new markers
   startMarker = L.marker([startCoords[0], startCoords[1]], {
@@ -50,12 +119,17 @@ function updateMap(startCoords, endCoords) {
     }),
   }).addTo(map);
 
-  // Fit map to show both markers
-  const bounds = L.latLngBounds([
-    startMarker.getLatLng(),
-    endMarker.getLatLng(),
-  ]);
-  map.fitBounds(bounds, { padding: [50, 50] });
+  // Draw route if provided
+  if (route) {
+    drawRoute(route);
+  } else {
+    // Fit map to show both markers
+    const bounds = L.latLngBounds([
+      startMarker.getLatLng(),
+      endMarker.getLatLng(),
+    ]);
+    map.fitBounds(bounds, { padding: [50, 50] });
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -127,9 +201,9 @@ document.addEventListener("DOMContentLoaded", () => {
         2
       );
 
-      // Update map with coordinates if available
+      // Update map with coordinates and route if available
       if (result.coords_start && result.coords_end) {
-        updateMap(result.coords_start, result.coords_end);
+        updateMap(result.coords_start, result.coords_end, result.route);
       }
     } catch (err) {
       document.getElementById("output").textContent =
@@ -145,15 +219,34 @@ document.addEventListener("DOMContentLoaded", () => {
   sendCommentBtn.addEventListener("click", async () => {
     const commentText = commentInput.value.trim();
     if (commentText) {
-      const commentPill = document.createElement("div");
-      commentPill.className = "comment-pill";
-      commentPill.textContent = commentText;
-      commentsContainer.appendChild(commentPill);
-      commentInput.value = "";
+      try {
+        // Send comment to backend
+        const response = await fetch("http://127.0.0.1:8000/api/comment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ comment: commentText }),
+        });
 
-      // Optional: Send to backend
-      await prompt_model(commentText);
-      commentCount++;
+        const result = await response.json();
+
+        // Create and add comment pill
+        const commentPill = document.createElement("div");
+        commentPill.className = "comment-pill";
+        commentPill.textContent = commentText;
+        commentsContainer.appendChild(commentPill);
+        commentInput.value = "";
+
+        // Log the response from the backend
+        console.log("Backend response:", result);
+      } catch (err) {
+        console.error("Error sending comment:", err);
+        // Still show the comment even if backend call fails
+        const commentPill = document.createElement("div");
+        commentPill.className = "comment-pill";
+        commentPill.textContent = commentText;
+        commentsContainer.appendChild(commentPill);
+        commentInput.value = "";
+      }
     }
   });
 

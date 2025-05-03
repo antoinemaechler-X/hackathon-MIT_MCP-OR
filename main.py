@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import requests
+from send_to_claude import send_to_claude
 
 app = FastAPI()
 
@@ -43,18 +44,41 @@ def solve_model(start, end, preferences):
     coords_start = geocode_city(start)
     coords_end = geocode_city(end)
     
-    # TODO: Implement your logic here
+    # Example route with different transport modes
+    # In a real implementation, this would be calculated based on the preferences
+    route = [
+        {
+            "from": coords_start,
+            "to": (40.7128, -74.0060),  # New York
+            "mode": "road"
+        },
+        {
+            "from": (40.7128, -74.0060),
+            "to": (41.8781, -87.6298),  # Chicago
+            "mode": "train"
+        },
+        {
+            "from": (41.8781, -87.6298),
+            "to": (37.7749, -122.4194),  # San Francisco
+            "mode": "airplane"
+        },
+        {
+            "from": (37.7749, -122.4194),
+            "to": coords_end,
+            "mode": "boat"
+        }
+    ]
     
     return {
         "message": f"Solving model for {start} to {end}",
         "coords_start": coords_start,
         "coords_end": coords_end,
-        "preferences": preferences
+        "preferences": preferences,
+        "route": route
     }
 
 def query_model(comment):
-    # TODO: Implement your logic here
-    # Example return:
+    send_to_claude(comment)
     return {"status": "success", "echo": comment}
 
 # --- API Endpoints ---
