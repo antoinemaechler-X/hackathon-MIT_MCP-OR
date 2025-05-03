@@ -74,3 +74,5 @@ if __name__ == "__main__":
     city_name = "Stanford"
     city_df, routes_df = add_city(city_df, routes_df, city_name,intermediate_mari_path="data/port_routes2.csv", geojson_path="data/out2.geojson")
     print(city_df[city_df['name'] == city_name])
+    print(routes_df[routes_df['origin'] == city_name])
+    print(routes_df[routes_df['destination'] == city_name])
