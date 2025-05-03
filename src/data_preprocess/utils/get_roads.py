@@ -172,7 +172,7 @@ def generate_all_routes(cities_path):
     airplane_df = pd.concat(plane_dfs, ignore_index=True)
 
     road_dfs = []
-    road_city_df = cities_df[cities_df["has_airport"] == False]
+    road_city_df = cities_df
     for i, row in road_city_df.iterrows():
         for j, row2 in road_city_df.iterrows():
             if i < j:
