@@ -42,11 +42,20 @@ def geocode_city(city_name: str) -> tuple[float, float]:
     return lat, lon
 
 # --- Your model functions to implement ---
-def solve_model(start:str, end:str, preferences, city_path = "data/cities.csv",route_path = "data/routes.csv"):
+def solve_model(start:str, end:str, preferences, city_path = "data/cities.csv",route_path = "data/routes_clean.csv"):
     cities_df = pd.read_csv(city_path)
     routes_df = pd.read_csv(route_path)
-    cities_df, routes_df = add_city(cities_df, routes_df, start, has_airport=True)
-    cities_df, routes_df = add_city(cities_df, routes_df, end, has_airport=True)
+    cities_df, routes_df = add_city(cities_df, routes_df, start, has_airport=False)
+    cities_df, routes_df = add_city(cities_df, routes_df, end, has_airport=False)
+
+    # Normalize the costs by dividing by the mean values
+    mean_time = routes_df["time"].mean()
+    mean_cost = routes_df["price"].mean()
+    mean_emissions = routes_df["CO2"].mean()
+
+    routes_df["time"] = routes_df["time"] / mean_time
+    routes_df["price"] = routes_df["price"] / mean_cost
+    routes_df["CO2"] = routes_df["CO2"] / mean_emissions
     
     # Convert coordinates to lists for JSON serialization
     coords_start = cities_df[cities_df["name"] == start][["lat", "lon"]].values[0].tolist()
@@ -109,65 +118,34 @@ def solve_model(start:str, end:str, preferences, city_path = "data/cities.csv",r
             return float(cost.getValue())
         return float(cost)
     
-    # Get all costs to find max values for normalization
-    all_costs = {
-        "time": [
-            convert_cost(time_cost),
-            convert_cost(time_cost_time_opt),
-            convert_cost(time_cost_cost_opt),
-            convert_cost(time_cost_emissions_opt)
-        ],
-        "cost": [
-            convert_cost(cost_cost),
-            convert_cost(cost_cost_time_opt),
-            convert_cost(cost_cost_cost_opt),
-            convert_cost(cost_cost_emissions_opt)
-        ],
-        "emissions": [
-            convert_cost(emissions_cost),
-            convert_cost(emissions_cost_time_opt),
-            convert_cost(emissions_cost_cost_opt),
-            convert_cost(emissions_cost_emissions_opt)
-        ]
-    }
-    
-    # Find max values for each cost type
-    max_time = max(all_costs["time"])
-    max_cost = max(all_costs["cost"])
-    max_emissions = max(all_costs["emissions"])
-    
-    # Normalize all costs by dividing by their respective max values
-    def normalize_cost(value, max_value):
-        return value / max_value if max_value > 0 else 0
-    
     return {
         "coords_start": coords_start,
         "coords_end": coords_end,
         "route": route,
         "costs": {
             "current": {
-                "total": normalize_cost(convert_cost(total_cost), max(all_costs["time"] + all_costs["cost"] + all_costs["emissions"])),
-                "time": normalize_cost(convert_cost(time_cost), max_time),
-                "cost": normalize_cost(convert_cost(cost_cost), max_cost),
-                "emissions": normalize_cost(convert_cost(emissions_cost), max_emissions)
+                "total": convert_cost(total_cost),
+                "time": convert_cost(time_cost),
+                "cost": convert_cost(cost_cost),
+                "emissions": convert_cost(emissions_cost)
             },
             "time_optimized": {
-                "total": normalize_cost(convert_cost(total_cost_time_opt), max(all_costs["time"] + all_costs["cost"] + all_costs["emissions"])),
-                "time": normalize_cost(convert_cost(time_cost_time_opt), max_time),
-                "cost": normalize_cost(convert_cost(cost_cost_time_opt), max_cost),
-                "emissions": normalize_cost(convert_cost(emissions_cost_time_opt), max_emissions)
+                "total": convert_cost(total_cost_time_opt),
+                "time": convert_cost(time_cost_time_opt),
+                "cost": convert_cost(cost_cost_time_opt),
+                "emissions": convert_cost(emissions_cost_time_opt)
             },
             "cost_optimized": {
-                "total": normalize_cost(convert_cost(total_cost_cost_opt), max(all_costs["time"] + all_costs["cost"] + all_costs["emissions"])),
-                "time": normalize_cost(convert_cost(time_cost_cost_opt), max_time),
-                "cost": normalize_cost(convert_cost(cost_cost_cost_opt), max_cost),
-                "emissions": normalize_cost(convert_cost(emissions_cost_cost_opt), max_emissions)
+                "total": convert_cost(total_cost_cost_opt),
+                "time": convert_cost(time_cost_cost_opt),
+                "cost": convert_cost(cost_cost_cost_opt),
+                "emissions": convert_cost(emissions_cost_cost_opt)
             },
             "emissions_optimized": {
-                "total": normalize_cost(convert_cost(total_cost_emissions_opt), max(all_costs["time"] + all_costs["cost"] + all_costs["emissions"])),
-                "time": normalize_cost(convert_cost(time_cost_emissions_opt), max_time),
-                "cost": normalize_cost(convert_cost(cost_cost_emissions_opt), max_cost),
-                "emissions": normalize_cost(convert_cost(emissions_cost_emissions_opt), max_emissions)
+                "total": convert_cost(total_cost_emissions_opt),
+                "time": convert_cost(time_cost_emissions_opt),
+                "cost": convert_cost(cost_cost_emissions_opt),
+                "emissions": convert_cost(emissions_cost_emissions_opt)
             }
         }
     }
