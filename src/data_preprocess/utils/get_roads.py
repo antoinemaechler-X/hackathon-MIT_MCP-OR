@@ -175,11 +175,16 @@ def generate_all_routes(cities_path):
             if i < j:
                 road_route_df = get_rp_routes(road_city_df, row, type="road")
                 road_dfs.append(road_route_df)
-    road_df = pd.concat(road_dfs, ignore_index=True)
-    road_df = road_df[[
-        "type", "route_name", "origin", "destination",
-        "time", "distance", "olat", "olon", "dlat", "dlon"
-    ]]
+    if road_dfs == []:
+        road_df = pd.DataFrame(columns=["type", "route_name", "origin", "destination",
+                                          "time", "distance", "olat", "olon", "dlat", "dlon"])
+    else:   
+
+        road_df = pd.concat(road_dfs, ignore_index=True)
+        road_df = road_df[[
+            "type", "route_name", "origin", "destination",
+            "time", "distance", "olat", "olon", "dlat", "dlon"
+        ]]
     airplane_df = airplane_df[["type", "route_name", "origin", "destination",
                                  "time", "distance", "olat", "olon", "dlat", "dlon"]]
     airplane_df.to_csv("data/airplane_routes.csv", index=False)
