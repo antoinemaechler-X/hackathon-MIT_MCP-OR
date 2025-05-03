@@ -4,7 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Shipping Planner</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="script.js" defer></script>
   </head>
   <body>
@@ -32,10 +37,62 @@
         <div id="comments"></div>
       </div>
 
+      <div class="preference-sliders">
+        <div class="slider-container">
+          <div class="slider-wrapper">
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              class="vertical-slider"
+              id="time-slider"
+            />
+            <div class="slider-track"></div>
+            <div class="slider-thumb" id="time-thumb"></div>
+          </div>
+          <div class="slider-label">Travel Time</div>
+        </div>
+
+        <div class="slider-container">
+          <div class="slider-wrapper">
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              class="vertical-slider"
+              id="cost-slider"
+            />
+            <div class="slider-track"></div>
+            <div class="slider-thumb" id="cost-thumb"></div>
+          </div>
+          <div class="slider-label">Travel Cost</div>
+        </div>
+
+        <div class="slider-container">
+          <div class="slider-wrapper">
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              class="vertical-slider"
+              id="emissions-slider"
+            />
+            <div class="slider-track"></div>
+            <div class="slider-thumb" id="emissions-thumb"></div>
+          </div>
+          <div class="slider-label">CO₂ Emissions</div>
+        </div>
+      </div>
+
       <button id="solve-model" class="shipping-button">
         Find Best Shipping Plan
       </button>
-    <div id="output"></div>
-  </div>
+
+      <div id="map" class="map-container"></div>
+      <div id="output"></div>
+    </div>
   </body>
-  </html>
+</html>
