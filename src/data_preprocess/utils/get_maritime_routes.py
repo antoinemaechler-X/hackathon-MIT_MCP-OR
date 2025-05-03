@@ -4,6 +4,9 @@ import pandas as pd
 import itertools
 from geopy.geocoders import Nominatim
 import requests
+import os
+import subprocess
+from src.data_preprocess.utils.json_to_maritime import process_out_to_roads
 
 # Load the file
 
@@ -44,6 +47,8 @@ def get_routes_from_city(df, city:pd.Series):
     :param city: row
     :return: DataFrame with route information
     """
+    if not has_osm_port(city['name']):
+        return pd.DataFrame()
     ports_df = df[df['has_port'] == True, df['name'] != city['name']]
     if ports_df.empty:
         return pd.DataFrame()
@@ -81,7 +86,22 @@ def get_routes(df):
         if not routes_df.empty:
             routes.append(routes_df)
     return pd.concat(routes, ignore_index=True) if routes else pd.DataFrame()
-    
+
+
+def run_searoute(port_routes_path, out_geojson_path):
+    searoute_dir = os.path.join('src', 'data_preprocess', 'searoute')
+    searoute_jar = os.path.join(searoute_dir, 'searoute.jar')
+    cmd = [
+        'java', '-jar', 'searoute.jar',
+        '-i', os.path.relpath(os.path.abspath(port_routes_path), searoute_dir),
+        '-o', os.path.relpath(os.path.abspath(out_geojson_path), searoute_dir)
+    ]
+    subprocess.run(cmd, check=True, cwd=searoute_dir)
+
+
+
+
+
 
 if __name__ == "__main__":
     # Load your CSV

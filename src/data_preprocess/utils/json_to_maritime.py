@@ -6,7 +6,7 @@
 import pandas as pd
 import json
 
-def process_out_to_roads(port_routes_path, geojson_path, output_path):
+def process_out_to_roads(port_routes_path, geojson_path):
     SHIP_SPEED_KMH = 30
     routes_df = pd.read_csv(port_routes_path)
     with open(geojson_path, "r") as f:
@@ -46,4 +46,4 @@ def process_out_to_roads(port_routes_path, geojson_path, output_path):
             })
     routes_df[["type", "origin", "destination", "distance", "CO2", "price", "time"]] = routes_df.apply(enrich_row, axis=1)
     routes_df = routes_df[["type", "route_name", "origin", "destination","time", "distance", "CO2", "price", "olon", "olat", "dlon", "dlat"]]
-    routes_df.to_csv(output_path, index=False)
+    return routes_df

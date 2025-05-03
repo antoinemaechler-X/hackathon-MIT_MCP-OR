@@ -10,6 +10,8 @@ import requests
 
 AVG_PLANE_SPEED_KMH = 800     # km/h en croisière
 OVERHEAD_TIME_H    = 1.0      # h total (embarquement + débarquement)
+AVG_BOAT_SPEED_KMH = 30        # km/h en croisière
+
 
 
 def get_road_distance_and_time(coords1, coords2):## duplicated in src/data_preprocess/get_roads.py
@@ -66,7 +68,63 @@ def get_airplane_distance_and_time_proxy(coords1, coords2,
     total_time_h = flight_time_h + overhead_h
     return dist_km, total_time_h
 
+def get_boat_time_proxy(distance_km):
+    """
+    Retourne le temps de trajet en bateau (en heures) pour une distance donnée (en km).
+    :param distance_km: distance en km
+    :return: temps de trajet en heures
+    """
+    return distance_km / AVG_BOAT_SPEED_KMH
 
+
+
+def get_rp_routes(df,city:pd.Series,type:str="road"):
+    """
+    Generate routes between the old cities and the new one.
+    :param df: DataFrame containing city names and coordinates
+    :param city: row
+    :return: DataFrame with route information
+    """
+    routes = []
+    for index, row in df.iterrows():
+        if row['name'] != city['name']:
+            coord1s = (row['lat'], row['lon'])
+            coord2s = (city['lat'], city['lon'])
+            if type == "airplane":
+                distance, time = get_airplane_distance_and_time_proxy(coord1s, coord2s)
+            elif type == "road":
+                distance, time = get_road_distance_and_time(coord1s, coord2s)
+            route = {
+                "type": type,
+                "route_name": f"{row['name']}-{city['name']}",
+                "origin": row['name'],
+                "destination": city['name'],
+                "distance": distance,
+                "time": time,
+                "olon": row['lon'],
+                "olat": row['lat'],
+                "dlon": city['lon'],
+                "dlat": city['lat']
+            }
+            routes.append(route)
+            # symetric route
+            route = {
+                "type": type,
+                "route_name": f"{city['name']}-{row['name']}",
+                "origin": city['name'],
+                "destination": row['name'],
+                "distance": distance,
+                "time": time,
+                "olon": city['lon'],
+                "olat": city['lat'],
+                "dlon": row['lon'],
+                "dlat": row['lat']
+            }
+            routes.append(route)
+    road_df = pd.DataFrame(routes)
+    road_df = road_df[["type", "route_name", "origin", "destination",
+                        "time", "distance", "olat", "olon", "dlat", "dlon"]]
+    return road_df
 
 
 # Paramètres à ajuster
@@ -101,46 +159,23 @@ def get_airplane_distance_and_time_proxy(coords1, coords2,
 
 def generate_all_routes(cities_path):
     cities_df = pd.read_csv(cities_path)
-    rows = []
-    for i, row in cities_df.iterrows():
-        for j, row2 in cities_df.iterrows():
-            if i != j and row.get("has_airport", False) and row2.get("has_airport", False):
-                coords1 = (row["lat"], row["lon"])
-                coords2 = (row2["lat"], row2["lon"])
-                distance, time = get_airplane_distance_and_time_proxy(coords1, coords2)
-                rows.append({
-                    "type": "airplane",
-                    "route_name": f"{row['name']}-{row2['name']}",
-                    "origin": row["name"],
-                    "destination": row2["name"],
-                    "olat": row["lat"],
-                    "olon": row["lon"],
-                    "dlat": row2["lat"],
-                    "dlon": row2["lon"],
-                    "distance": distance,
-                    "time": time
-                })
-    airplane_df = pd.DataFrame(rows)
-    road_rows = []
-    for i, row in cities_df.iterrows():
-        for j, row2 in cities_df.iterrows():
-            if i != j:
-                coords1 = (row["lat"], row["lon"])
-                coords2 = (row2["lat"], row2["lon"])
-                distance, time = get_road_distance_and_time(coords1, coords2)
-                road_rows.append({
-                    "type": "road",
-                    "route_name": f"{row['name']}-{row2['name']}",
-                    "origin": row["name"],
-                    "destination": row2["name"],
-                    "olat": row["lat"],
-                    "olon": row["lon"],
-                    "dlat": row2["lat"],
-                    "dlon": row2["lon"],
-                    "distance": distance,
-                    "time": time
-                })
-    road_df = pd.DataFrame(road_rows)
+    plane_dfs = []
+    airplane_city_df = cities_df[cities_df["has_airport"] == True]
+    for i, row in airplane_city_df.iterrows():
+        for j, row2 in airplane_city_df.iterrows():
+            if i <j:
+                plane_route_df = get_rp_routes(airplane_city_df, row, type="airplane")
+                plane_dfs.append(plane_route_df)
+    airplane_df = pd.concat(plane_dfs, ignore_index=True)
+
+    road_dfs = []
+    road_city_df = cities_df[cities_df["has_airport"] == False]
+    for i, row in road_city_df.iterrows():
+        for j, row2 in road_city_df.iterrows():
+            if i < j:
+                road_route_df = get_rp_routes(road_city_df, row, type="road")
+                road_dfs.append(road_route_df)
+    road_df = pd.concat(road_dfs, ignore_index=True)
     road_df = road_df[[
         "type", "route_name", "origin", "destination",
         "time", "distance", "olat", "olon", "dlat", "dlon"

@@ -2,7 +2,7 @@ import pandas as pd
 from src.data_preprocess.utils.get_lat_long import apply_lat_long
 from src.data_preprocess.utils.get_maritime_routes import has_osm_port, get_routes
 from src.data_preprocess.utils import add_CO2_price
-from src.data_preprocess.utils.out_to_roads import process_out_to_roads
+from src.data_preprocess.utils.json_to_maritime import process_out_to_roads
 from src.data_preprocess.utils.get_roads import generate_all_routes
 from src.data_preprocess.utils.add_CO2_price import add_co2_and_price_and_concat
 import subprocess
@@ -40,11 +40,11 @@ def run_searoute(port_routes_path, out_geojson_path):
 
 # 4. Traitement des routes maritimes avec out_to_roads
 def process_maritime_routes():
-    process_out_to_roads(
+    routes_df = process_out_to_roads(
         port_routes_path='data/port_routes.csv',
-        geojson_path='data/out.geojson',
-        output_path='data/ship_routes.csv'
+        geojson_path='data/out.geojson'
     )
+    routes_df.to_csv('data/ship_routes.csv', index=False)
 
 # 5. Génération des routes avion et route
 def generate_airplane_and_road_routes():
