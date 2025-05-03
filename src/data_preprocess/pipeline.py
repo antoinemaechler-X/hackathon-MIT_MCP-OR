@@ -15,7 +15,6 @@ def enrich_cities_with_coordinates(cities_path):
     df = apply_lat_long(df)
     df.to_csv(cities_path, index=False)
     print(df.head())
-    df["has_aiport"] = df.apply(lambda x: has_osm_port(x["name"]), axis=1)
     df.to_csv(cities_path, index=False)
     return df
 

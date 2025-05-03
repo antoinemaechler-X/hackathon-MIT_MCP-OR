@@ -38,9 +38,9 @@ def has_osm_port(city_name, type="port"):
         query = f"""
         [out:json];
         (
-          node["airport"](around:50000,{lat},{lon});
-          way["aiport"](around:50000,{lat},{lon});
-          relation["airport"](around:50000,{lat},{lon});
+          node["airport"](around:15000,{lat},{lon});
+          way["aiport"](around:15000,{lat},{lon});
+          relation["airport"](around:15000,{lat},{lon});
         );
         out body;
         """

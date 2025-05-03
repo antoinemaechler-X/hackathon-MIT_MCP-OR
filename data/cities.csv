@@ -1,10 +1,10 @@
-name,has_port,has_airport,lat,lon,has_aiport
-New York,True,True,40.7127281,-74.0060152,True
-Los Angeles,True,True,34.0536909,-118.242766,False
-Chicago,True,True,41.8755616,-87.6244212,False
-Houston,False,True,29.7589382,-95.3676974,False
-Phoenix,False,True,33.4484367,-112.074141,False
-Philadelphia,False,True,39.9527237,-75.1635262,True
+name,has_port,has_airport,lat,lon,has_aiport,
+New York,True,True,40.7127281,-74.0060152,True,
+Los Angeles,True,True,34.0536909,-118.242766,False,
+Chicago,True,True,41.8755616,-87.6244212,False,
+Houston,False,True,29.7589382,-95.3676974,False,
+Phoenix,False,True,33.4484367,-112.074141,False,
+Philadelphia,False,True,39.9527237,-75.1635262,True,
 San Antonio,False,True,29.4246002,-98.4951405,False
 San Diego,True,True,32.7174202,-117.162772,False
 Dallas,False,True,32.7762719,-96.7968559,False

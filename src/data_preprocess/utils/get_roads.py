@@ -39,6 +39,8 @@ import math
 # Paramètres à ajuster
 AVG_PLANE_SPEED_KMH = 800     # km/h en croisière
 OVERHEAD_TIME_H    = 1.0      # h total (embarquement + débarquement)
+AVG_TRAIN_SPEED_KMH = 150
+
 
 
 
@@ -94,6 +96,7 @@ def get_rp_routes(df,city:pd.Series,type:str="road"):
                 distance, time = get_airplane_distance_and_time_proxy(coord1s, coord2s)
             elif type == "road":
                 distance, time = get_road_distance_and_time(coord1s, coord2s)
+            
             route = {
                 "type": type,
                 "route_name": f"{row['name']}-{city['name']}",
