@@ -14,7 +14,7 @@ from src.data_preprocess.utils.json_to_maritime import process_out_to_roads
 
 
 
-def has_osm_port(city_name):
+def has_osm_port(city_name, type="port"):
     geolocator = Nominatim(user_agent="port-checker")
     location = geolocator.geocode(city_name)
     if not location:
@@ -23,15 +23,28 @@ def has_osm_port(city_name):
     lat, lon = location.latitude, location.longitude
 
     overpass_url = "http://overpass-api.de/api/interpreter"
-    query = f"""
-    [out:json];
-    (
-      node["harbour"](around:50000,{lat},{lon});
-      way["harbour"](around:50000,{lat},{lon});
-      relation["harbour"](around:50000,{lat},{lon});
-    );
-    out body;
-    """
+
+    if type == "port":
+        query = f"""
+        [out:json];
+        (
+          node["port"](around:50000,{lat},{lon});
+          way["port"](around:50000,{lat},{lon});
+          relation["port"](around:50000,{lat},{lon});
+        );
+        out body;
+        """
+    elif type == "airport":
+        query = f"""
+        [out:json];
+        (
+          node["airport"](around:50000,{lat},{lon});
+          way["aiport"](around:50000,{lat},{lon});
+          relation["airport"](around:50000,{lat},{lon});
+        );
+        out body;
+        """
+
     response = requests.post(overpass_url, data={"data": query})
     data = response.json()
     return len(data.get("elements", [])) > 0
@@ -49,7 +62,7 @@ def get_routes_from_city(df, city:pd.Series):
     """
     if not has_osm_port(city['name']):
         return pd.DataFrame()
-    ports_df = df[df['has_port'] == True, df['name'] != city['name']]
+    ports_df = df[(df['has_port'] == True) & (df['name'] != city['name'])]
     if ports_df.empty:
         return pd.DataFrame()
     routes = []
@@ -105,14 +118,15 @@ def run_searoute(port_routes_path, out_geojson_path):
 
 if __name__ == "__main__":
     # Load your CSV
-    df = pd.read_csv("data/cities.csv")
-    df['has_port'] = df['name'].apply(has_osm_port)
-    df.to_csv("data/cities.csv", index=False)
+    # df = pd.read_csv("data/cities.csv")
+    # df['has_port'] = df['name'].apply(has_osm_port)
+    # df.to_csv("data/cities.csv", index=False)
 
-    df = df[df['has_port'] == True]
+    # df = df[df['has_port'] == True]
 
-    # Get routes
-    routes_df = get_routes(df)
+    # # Get routes
+    # routes_df = get_routes(df)
 
-    # Save result (optional)
-    routes_df.to_csv("data/port_routes.csv", index=False)
+    # # Save result (optional)
+    # routes_df.to_csv("data/port_routes.csv", index=False)
+    print(has_osm_port("Los Angeles", type="airport"))

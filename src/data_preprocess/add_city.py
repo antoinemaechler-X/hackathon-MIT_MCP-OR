@@ -21,18 +21,21 @@ def add_city(city_df, routes_df, city_name,
     :param city_name: Name of the new city to add
     :return: DataFrame with the new city added
     """
+    
+    # check if the city already exists
+    if city_name in city_df['name'].values:
+        print(f"City {city_name} already exists in the DataFrame.")
+        return city_df, routes_df
+    has_airport = has_osm_port(city_name,"airport")
+    has_port = has_osm_port(city_name,"port")
     lat, long = get_coordinates(city_name)
     new_city = pd.Series({
         "name": city_name,
         "lat": lat,
         "lon": long,
         "has_airport": has_airport,
-        "has_port": False
+        "has_port": has_port,
     })
-    # check if the city already exists
-    if city_name in city_df['name'].values:
-        print(f"City {city_name} already exists in the DataFrame.")
-        return city_df, routes_df
     city_df = pd.concat([city_df, new_city.to_frame().T], ignore_index=True)
     # city_df.to_csv(new_cities_path, index=False)
 

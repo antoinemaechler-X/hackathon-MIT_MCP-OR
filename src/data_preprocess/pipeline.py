@@ -4,9 +4,10 @@ from src.data_preprocess.utils.get_maritime_routes import has_osm_port, get_rout
 from src.data_preprocess.utils import add_CO2_price
 from src.data_preprocess.utils.json_to_maritime import process_out_to_roads
 from src.data_preprocess.utils.get_roads import generate_all_routes
-from src.data_preprocess.utils.add_CO2_price import add_co2_and_price_and_concat
+from src.data_preprocess.utils.add_CO2_price import add_co2_and_price_df
 import subprocess
 import os
+from src.data_preprocess.utils.get_maritime_routes import has_osm_port
 
 # 1. Ajout des coordonnées aux villes
 def enrich_cities_with_coordinates(cities_path):
@@ -14,7 +15,11 @@ def enrich_cities_with_coordinates(cities_path):
     df = apply_lat_long(df)
     df.to_csv(cities_path, index=False)
     print(df.head())
+    df["has_aiport"] = df.apply(lambda x: has_osm_port(x["name"]), axis=1)
+    df.to_csv(cities_path, index=False)
     return df
+
+
 
 # 2. Ajout colonne has_port et génération des routes maritimes potentielles
 def generate_maritime_routes(cities_path, port_routes_path):
@@ -52,20 +57,26 @@ def generate_airplane_and_road_routes():
 
 # 6. Ajout du prix et CO2 et concaténation
 def add_price_and_co2_and_concat():
-    add_co2_and_price_and_concat(
-        airplane_path='data/airplane_routes.csv',
-        road_path='data/road_routes.csv',
-        ship_path='data/ship_routes.csv',
-        output_path='data/routes.csv'
-    )
-
+    for type in ["airplane", "road", "ship"]:
+        df = pd.read_csv(f"data/{type}_routes.csv")
+        df["type"] = type
+        df.to_csv(f"data/{type}_routes.csv", index=False)
+    # combine
+    global_df = pd.concat([
+        pd.read_csv("data/airplane_routes.csv"),
+        pd.read_csv("data/road_routes.csv"),
+        pd.read_csv("data/ship_routes.csv")
+    ], ignore_index=True)
+    global_df = add_co2_and_price_df(global_df)
+    global_df.to_csv("data/routes.csv", index=False)
+    
 if __name__ == "__main__":
     cities_path = 'data/cities.csv'
     port_routes_path = 'data/port_routes.csv'
     out_geojson_path = 'data/out.geojson'
 
-    enrich_cities_with_coordinates(cities_path)
-    generate_maritime_routes(cities_path, port_routes_path)
+    cities_df = enrich_cities_with_coordinates(cities_path)
+    routes_df = generate_maritime_routes(cities_path, port_routes_path)
     run_searoute(port_routes_path, out_geojson_path)
     process_maritime_routes()
     generate_airplane_and_road_routes()
