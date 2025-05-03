@@ -180,6 +180,12 @@ def solve_shortest_path(graph, source, target, alpha, beta, gamma):
     model = gp.Model("multi_objective_shortest_path")
     model.setParam('OutputFlag', 0)
 
+    # Renormalize the costs
+    sum_preferences = alpha + beta + gamma
+    alpha = alpha / sum_preferences
+    beta = beta / sum_preferences
+    gamma = gamma / sum_preferences
+
     # Decision variables: x_e = 1 if edge e=(u,v) is in the path
     x = {}
     for u, v, data in graph.edges(data=True):

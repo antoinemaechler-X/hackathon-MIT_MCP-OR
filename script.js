@@ -218,7 +218,7 @@ function createCostHistogram(costs, title) {
   new Chart(ctx, {
     type: "bar",
     data: {
-      labels: ["Time", "Cost", "Emissions", "Total"],
+      labels: ["Time (hours)", "Cost ($)", "Emissions (kg)", "Total"],
       datasets: [
         {
           label: title,
@@ -244,10 +244,9 @@ function createCostHistogram(costs, title) {
       scales: {
         y: {
           beginAtZero: true,
-          max: 1.0,
           ticks: {
             callback: function (value) {
-              return (value * 100).toFixed(0) + "%";
+              return value.toFixed(2);
             },
           },
         },
@@ -256,12 +255,7 @@ function createCostHistogram(costs, title) {
         tooltip: {
           callbacks: {
             label: function (context) {
-              return (
-                context.dataset.label +
-                ": " +
-                (context.raw * 100).toFixed(1) +
-                "%"
-              );
+              return context.dataset.label + ": " + context.raw.toFixed(2);
             },
           },
         },
