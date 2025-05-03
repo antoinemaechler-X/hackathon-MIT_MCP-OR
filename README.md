@@ -50,6 +50,7 @@ choco install uv
         ```bash
         source .venv/bin/activate
         ```
+    (on Windows, use `. .venv\Scripts\Activate.ps1`)                 
     Once activated, you can run your Python file directly:
         ```bash
         python <file-name>.py

@@ -5,19 +5,24 @@ import pandas as pd
 
 import requests
 
+## TIME, COST, EMISSIONS
+
 # Cost and emission factors per ton-kilometer for each transport mode
 COST_PER_TKM = {
     'road': 0.04,      # $ per t·km
     'train': 0.02,
-    'boat': 0.01,
+    'ship': 0.01,
     'airplane': 1.0
 }
 EMISSION_PER_TKM = {
     'road': 100,       # g CO₂ per t·km
     'train': 30,
-    'boat': 10,
+    'ship': 10,
     'airplane': 600
 }
+
+TRANSITION_TIME_HR = 0.5
+TRANSITION_COST = 0
 
 def get_road_distance_and_time(coords1, coords2):## duplicated in src/data_preprocess/get_roads.py
     """
@@ -105,89 +110,95 @@ def get_airplane_distance_and_time_proxy(coords1, coords2,
 
 
 cities = pd.read_csv("data/cities.csv").to_dict(orient="records")
+routes = pd.read_csv("data/routes.csv").to_dict(orient="records")
 
 
-def build_city_graph(cities):
+def build_city_graph(cities,routes):
     G = nx.DiGraph()
     city_nodes = {}
 
     for city in cities:
         city_name = city["name"]
         nodes = {}
-        nodes["storage"] = f"{city_name}_storage"
+        
         nodes["road"] = f"{city_name}_road"
         nodes["train"] = f"{city_name}_train"
-        G.add_node(nodes["storage"], city=city_name, type="storage")
         G.add_node(nodes["road"], city=city_name, type="road")
         G.add_node(nodes["train"], city=city_name, type="train")
         if city.get("has_airport"):
             nodes["airplane"] = f"{city_name}_airplane"
             G.add_node(nodes["airplane"], city=city_name, type="airplane")
         if city.get("has_port"):
-            nodes["boat"] = f"{city_name}_boat"
-            G.add_node(nodes["boat"], city=city_name, type="boat")
+            nodes["ship"] = f"{city_name}_ship"
+            G.add_node(nodes["ship"], city=city_name, type="ship")
         city_nodes[city_name] = nodes
 
         # Add edges between all nodes of this city (clique)
         node_list = list(nodes.values())
         for i in range(len(node_list)):
             for j in range(i + 1, len(node_list)):
-                G.add_edge(node_list[i], node_list[j], cost=(0, 0, 0))
-                G.add_edge(node_list[j], node_list[i], cost=(0, 0, 0))
+                G.add_edge(node_list[i], node_list[j], cost=(TRANSITION_TIME_HR, TRANSITION_COST, 0))
+                G.add_edge(node_list[j], node_list[i], cost=(TRANSITION_TIME_HR,TRANSITION_COST, 0))
+        nodes["storage"] = f"{city_name}_storage"
+        G.add_node(nodes["storage"], city=city_name, type="storage")
+        # Add edges between storage and other nodes in the city
+        for node in node_list:
+            G.add_edge(nodes["storage"], node, cost=(0, 0, 0))
+            G.add_edge(node, nodes["storage"], cost=(0, 0, 0))
 
-    # Add edges between nodes of the same type in different cities (except storage)
-    types = ["road", "train", "airplane", "boat"]
-    for t in types:
-        nodes_of_type = [nodes[t] for nodes in city_nodes.values() if t in nodes]
-        for i in range(len(nodes_of_type)):
-            for j in range(i + 1, len(nodes_of_type)):
-                G.add_edge(nodes_of_type[i], nodes_of_type[j], cost=(0, 0, 0))
-                G.add_edge(nodes_of_type[j], nodes_of_type[i], cost=(0, 0, 0))
+    # Add edges between nodes of the same type in different cities (except storage)7
+    for edge in routes:
+        type = edge["type"]
+        origin = edge["origin"]
+        destination = edge["destination"]
+        from_node = city_nodes[origin][type]
+        to_node = city_nodes[destination][type]
+        G.add_edge(from_node, to_node, cost=(edge["time"], edge["price"], edge["CO2"]))
 
     return G
 
-def build_edge_database(cities):
-    city_nodes = {}
+# def build_edge_database(cities):
+#     city_nodes = {}
 
-    # Création des nœuds par ville
-    for city in cities:
-        city_name = city["name"]
-        nodes = {}
-        nodes["storage"] = f"{city_name}_storage"
-        nodes["road"] = f"{city_name}_road"
-        nodes["train"] = f"{city_name}_train"
-        if city.get("has_airport"):
-            nodes["airplane"] = f"{city_name}_airplane"
-        if city.get("has_port"):
-            nodes["boat"] = f"{city_name}_boat"
-        city_nodes[city_name] = nodes
+#     # Création des nœuds par ville
+#     for city in cities:
+#         city_name = city["name"]
+#         nodes = {}
+#         nodes["storage"] = f"{city_name}_storage"
+#         nodes["road"] = f"{city_name}_road"
+#         nodes["train"] = f"{city_name}_train"
+#         if city.get("has_airport"):
+#             nodes["airplane"] = f"{city_name}_airplane"
+#         if city.get("has_port"):
+#             nodes["ship"] = f"{city_name}_ship"
+#         city_nodes[city_name] = nodes
 
-    edge_db = []
+#     edge_db = []
 
-    # Arêtes internes à la ville (clique)
-    for nodes in city_nodes.values():
-        node_list = list(nodes.values())
-        for i in range(len(node_list)):
-            for j in range(i + 1, len(node_list)):
-                edge_db.append({
-                    "from_node": node_list[i],
-                    "to_node": node_list[j],
-                    "cost": (0, 0, 0)
-                })
+#     # Arêtes internes à la ville (clique)
+#     for nodes in city_nodes.values():
+#         node_list = list(nodes.values())
+#         for i in range(len(node_list)):
+#             for j in range(i + 1, len(node_list)):
+#                 edge_db.append({
+#                     "from_node": node_list[i],
+#                     "to_node": node_list[j],
+#                     "cost": (0, 0, 0)
+#                 })
 
-    # Arêtes entre villes de même type (hors storage)
-    types = ["road", "train", "airplane", "boat"]
-    for t in types:
-        nodes_of_type = [nodes[t] for nodes in city_nodes.values() if t in nodes]
-        for i in range(len(nodes_of_type)):
-            for j in range(i + 1, len(nodes_of_type)):
-                edge_db.append({
-                    "from_node": nodes_of_type[i],
-                    "to_node": nodes_of_type[j],
-                    "cost": (0, 0, 0)
-                })
+#     # Arêtes entre villes de même type (hors storage)
+#     types = ["road", "train", "airplane", "ship"]
+#     for t in types:
+#         nodes_of_type = [nodes[t] for nodes in city_nodes.values() if t in nodes]
+#         for i in range(len(nodes_of_type)):
+#             for j in range(i + 1, len(nodes_of_type)):
+#                 edge_db.append({
+#                     "from_node": nodes_of_type[i],
+#                     "to_node": nodes_of_type[j],
+#                     "cost": (0, 0, 0)
+#                 })
 
-    return edge_db
+#     return edge_db
 
 
 # -------------------- Gurobi Shortest Path Solver --------------------
@@ -221,6 +232,10 @@ def solve_shortest_path(graph, source, target, alpha=1.0, beta=1.0, gamma=1.0):
             model.addConstr(outflow - inflow == -1, name=f"flow_{node}")
         else:
             model.addConstr(outflow - inflow == 0, name=f"flow_{node}")
+    # No storage node unless it is the source or target
+    for node in graph.nodes():
+        if graph.nodes[node].get("type") == "storage" and node not in [source, target]:
+            model.addConstr(gp.quicksum(x[(u, v)] for u, v in graph.out_edges(node) if (u, v) in x) == 0, name=f"no_storage_{node}")
 
     # Objective: weighted sum of the three cost components
     objective = gp.quicksum(
@@ -242,6 +257,14 @@ def solve_shortest_path(graph, source, target, alpha=1.0, beta=1.0, gamma=1.0):
         path = selected
     return path, model.ObjVal
 
+def get_node(city_name):
+    """
+    Get the node name for a city.
+    :param city_name: Name of the city
+    :return: Node name
+    """
+    return f"{city_name}_storage"  # Assuming we want the road node
+
 
 def test_road_distance():
     # New York coordinates (approximate)
@@ -256,10 +279,10 @@ def test_road_distance():
 
 if __name__ == "__main__":
     test_road_distance()
-    city_graph = build_city_graph(cities)
-    source_node = list(city_graph.nodes())[0]
-    target_node = list(city_graph.nodes())[-1]
-    path, cost = solve_shortest_path(city_graph, source_node, target_node, alpha=0.5, beta=0.3, gamma=0.2)
+    city_graph = build_city_graph(cities, routes)
+    source_node = get_node("New York")  # Example source node
+    target_node = get_node("Boston")  # Example target node
+    path, cost = solve_shortest_path(city_graph, source_node, target_node, alpha=10, beta=0.3, gamma=0.2)
     print(f"Optimal path from {source_node} to {target_node}: {path}")
     print(f"Weighted cost: {cost}")
 
@@ -267,6 +290,7 @@ if __name__ == "__main__":
     print("Sample nodes:", list(city_graph.nodes)[:10])
 
     # Exemple d'utilisation
-    edge_database = build_edge_database(cities)
-    print(f"Nombre d'arêtes: {len(edge_database)}")
-    print("Exemple d'arêtes:", edge_database[:5])
+    # # edge_database = build_edge_database(cities)
+    # print(f"Nombre d'arêtes: {len(edge_database)}")
+    # print("Exemple d'arêtes:", edge_database[:5])
+    # print(build_city_graph(cities,routes).nodes(data=True))
