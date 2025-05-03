@@ -9,21 +9,27 @@ SHIP_PRICE_PER_KM = 0.02  # price per km for ship
 ROAD_PRICE_PER_KM = 0.05  # price per km for road
 
 
-def add_CO2_and_price(df):
-    for index, row in df.iterrows():
-        if row["type"] == "airplane":
-            df.at[index, "CO2"] = row["distance"] * PLANE_CO2_PER_KM
-            df.at[index, "price"] = row["distance"] * PLANE_PRICE_PER_KM
-        elif row["type"] == "ship":
-            df.at[index, "CO2"] = row["distance"] * SHIP_CO2_PER_KM
-            df.at[index, "price"] = row["distance"] * SHIP_PRICE_PER_KM
-        elif row["type"] == "road":
-            df.at[index, "CO2"] = row["distance"] * ROAD_CO2_PER_KM
-            df.at[index, "price"] = row["distance"] * ROAD_PRICE_PER_KM
-        else:
-            df.at[index, "CO2"] = None
-            df.at[index, "price"] = None
+def add_CO2_price_row(row):
+    if row["type"] == "airplane":
+        row["CO2"] = row["distance"] * PLANE_CO2_PER_KM
+        row["price"] = row["distance"] * PLANE_PRICE_PER_KM
+    elif row["type"] == "ship":
+        row["CO2"] = row["distance"] * SHIP_CO2_PER_KM
+        row["price"] = row["distance"] * SHIP_PRICE_PER_KM
+    elif row["type"] == "road":
+        row["CO2"] = row["distance"] * ROAD_CO2_PER_KM
+        row["price"] = row["distance"] * ROAD_PRICE_PER_KM
+    return row
+
+def add_co2_and_price_df(df):
+    df = df.copy()
+    df["CO2"] = None
+    df["price"] = None
+    df = df.apply(add_CO2_price_row, axis=1)
     return df
+
+
+
 
 if __name__ == "__main__":
     for type in ["airplane", "road", "ship"]:
@@ -39,4 +45,3 @@ if __name__ == "__main__":
     global_df = global_df[["type", "route_name", "origin", "destination", "time", "distance", "CO2", "price", "olon", "olat", "dlon", "dlat"]]
 
     global_df.to_csv("data/routes.csv", index=False)
-    

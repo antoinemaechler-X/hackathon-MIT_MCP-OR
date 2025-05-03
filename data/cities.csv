@@ -1,6 +1,6 @@
 name,has_port,has_airport,lat,lon
 New York,True,True,40.7127281,-74.0060152
-Los Angeles,True,True,34.052235,-118.243683
+Los Angeles,True,True,34.0536909,-118.242766
 Chicago,True,True,41.8755616,-87.6244212
 Houston,False,True,29.7589382,-95.3676974
 Phoenix,False,True,33.4484367,-112.074141
@@ -27,5 +27,5 @@ Oklahoma City,False,True,35.4729886,-97.5170536
 Portland,False,True,45.5202471,-122.674194
 Las Vegas,False,True,36.171697,-115.1463536
 Memphis,False,True,35.1460249,-90.0517638
-Baltimore,True,True,39.290386,-76.61219
+Baltimore,True,True,39.2908816,-76.610759
 Louisville,False,True,38.2542376,-85.759407
