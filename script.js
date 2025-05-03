@@ -81,8 +81,8 @@ function drawRoute(route) {
 
     // Create a line between the points
     const latlngs = [
-      [from[0], from[1]],
-      [to[0], to[1]],
+      [from.coords[0], from.coords[1]],
+      [to.coords[0], to.coords[1]],
     ];
 
     try {
@@ -200,7 +200,7 @@ function createRouteVisualization(route, start, end) {
     // Create city box
     const cityBox = document.createElement("div");
     cityBox.className = "city-box";
-    cityBox.textContent = index === route.length - 1 ? end : segment.to;
+    cityBox.textContent = index === route.length - 1 ? end : segment.to.name;
     container.appendChild(cityBox);
   });
 

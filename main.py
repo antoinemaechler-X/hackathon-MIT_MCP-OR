@@ -107,8 +107,14 @@ def solve_model(start:str, end:str, preferences, city_path = "data/cities.csv",r
         }
         
         route.append({
-            "from": current_coords,
-            "to": next_coords,
+            "from": {
+                "name": current_city,
+                "coords": current_coords
+            },
+            "to": {
+                "name": next_city,
+                "coords": next_coords
+            },
             "mode": mode_map.get(mode, "road")  # Default to road if mode not found
         })
     
