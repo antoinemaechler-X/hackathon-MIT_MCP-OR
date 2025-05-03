@@ -5,17 +5,16 @@ from send_to_claude import send_to_claude
 from solver import solve_shortest_path, build_city_graph, get_node
 from src.data_preprocess.add_city import add_city
 import pandas as pd
-
+import numpy as np
 app = FastAPI()
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"],  # Your frontend URL
+    allow_origins=["*"],  # Allows all origins
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"]
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
 
 def geocode_city(city_name: str) -> tuple[float, float]:

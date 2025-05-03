@@ -117,11 +117,6 @@ def build_city_graph(cities,routes):
     G = nx.DiGraph()
     city_nodes = {}
 
-    # First pass to find max values for normalization
-    max_time = max(edge["time"] for edge in routes)
-    max_price = max(edge["price"] for edge in routes)
-    max_co2 = max(edge["CO2"] for edge in routes)
-
     for city in cities:
         city_name = city["name"]
         nodes = {}
@@ -142,8 +137,8 @@ def build_city_graph(cities,routes):
         node_list = list(nodes.values())
         for i in range(len(node_list)):
             for j in range(i + 1, len(node_list)):
-                G.add_edge(node_list[i], node_list[j], cost=(TRANSITION_TIME_HR/max_time, TRANSITION_COST/max_price, 0))
-                G.add_edge(node_list[j], node_list[i], cost=(TRANSITION_TIME_HR/max_time, TRANSITION_COST/max_price, 0))
+                G.add_edge(node_list[i], node_list[j], cost=(TRANSITION_TIME_HR, TRANSITION_COST, 0))
+                G.add_edge(node_list[j], node_list[i], cost=(TRANSITION_TIME_HR,TRANSITION_COST, 0))
         nodes["storage"] = f"{city_name}_storage"
         G.add_node(nodes["storage"], city=city_name, type="storage")
         # Add edges between storage and other nodes in the city
@@ -156,13 +151,14 @@ def build_city_graph(cities,routes):
         type = edge["type"]
         origin = edge["origin"]
         destination = edge["destination"]
+        
+        # Skip if either city doesn't have the required transport mode
+        if type not in city_nodes[origin] or type not in city_nodes[destination]:
+            continue
+            
         from_node = city_nodes[origin][type]
         to_node = city_nodes[destination][type]
-        # Normalize costs by dividing by max values
-        normalized_time = edge["time"] / max_time
-        normalized_price = edge["price"] / max_price
-        normalized_co2 = edge["CO2"] / max_co2
-        G.add_edge(from_node, to_node, cost=(normalized_time, normalized_price, normalized_co2))
+        G.add_edge(from_node, to_node, cost=(edge["time"], edge["price"], edge["CO2"]))
 
     return G
 
