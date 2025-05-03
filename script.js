@@ -244,6 +244,26 @@ function createCostHistogram(costs, title) {
       scales: {
         y: {
           beginAtZero: true,
+          max: 1.0,
+          ticks: {
+            callback: function (value) {
+              return (value * 100).toFixed(0) + "%";
+            },
+          },
+        },
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              return (
+                context.dataset.label +
+                ": " +
+                (context.raw * 100).toFixed(1) +
+                "%"
+              );
+            },
+          },
         },
       },
     },

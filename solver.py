@@ -117,6 +117,11 @@ def build_city_graph(cities,routes):
     G = nx.DiGraph()
     city_nodes = {}
 
+    # First pass to find max values for normalization
+    max_time = max(edge["time"] for edge in routes)
+    max_price = max(edge["price"] for edge in routes)
+    max_co2 = max(edge["CO2"] for edge in routes)
+
     for city in cities:
         city_name = city["name"]
         nodes = {}
@@ -137,8 +142,8 @@ def build_city_graph(cities,routes):
         node_list = list(nodes.values())
         for i in range(len(node_list)):
             for j in range(i + 1, len(node_list)):
-                G.add_edge(node_list[i], node_list[j], cost=(TRANSITION_TIME_HR, TRANSITION_COST, 0))
-                G.add_edge(node_list[j], node_list[i], cost=(TRANSITION_TIME_HR,TRANSITION_COST, 0))
+                G.add_edge(node_list[i], node_list[j], cost=(TRANSITION_TIME_HR/max_time, TRANSITION_COST/max_price, 0))
+                G.add_edge(node_list[j], node_list[i], cost=(TRANSITION_TIME_HR/max_time, TRANSITION_COST/max_price, 0))
         nodes["storage"] = f"{city_name}_storage"
         G.add_node(nodes["storage"], city=city_name, type="storage")
         # Add edges between storage and other nodes in the city
@@ -146,20 +151,24 @@ def build_city_graph(cities,routes):
             G.add_edge(nodes["storage"], node, cost=(0, 0, 0))
             G.add_edge(node, nodes["storage"], cost=(0, 0, 0))
 
-    # Add edges between nodes of the same type in different cities (except storage)7
+    # Add edges between nodes of the same type in different cities (except storage)
     for edge in routes:
         type = edge["type"]
         origin = edge["origin"]
         destination = edge["destination"]
         from_node = city_nodes[origin][type]
         to_node = city_nodes[destination][type]
-        G.add_edge(from_node, to_node, cost=(edge["time"], edge["price"], edge["CO2"]))
+        # Normalize costs by dividing by max values
+        normalized_time = edge["time"] / max_time
+        normalized_price = edge["price"] / max_price
+        normalized_co2 = edge["CO2"] / max_co2
+        G.add_edge(from_node, to_node, cost=(normalized_time, normalized_price, normalized_co2))
 
     return G
 
 
 # -------------------- Gurobi Shortest Path Solver --------------------
-def solve_shortest_path(graph, source, target, alpha=1.0, beta=1.0, gamma=1.0):
+def solve_shortest_path(graph, source, target, alpha, beta, gamma):
     """
     Solve the shortest path problem with multi-dimensional edge costs using Gurobi.
     :param graph: networkx Graph with edge attribute 'cost' as a tuple (t, c, co2)
@@ -170,22 +179,6 @@ def solve_shortest_path(graph, source, target, alpha=1.0, beta=1.0, gamma=1.0):
     :param gamma: weight for carbon cost
     :return: (path list of nodes, total_cost, time_cost, cost_cost, emissions_cost)
     """
-
-    # Scaling the costs so that the three components are on the same order of magnitude
-    # We use the means computed on the routes dataset
-    mean_time = 18
-    mean_cost = 148
-    mean_emissions = 234
-
-    alpha = alpha / mean_time
-    beta = beta / mean_cost
-    gamma = gamma / mean_emissions
-
-    # Renormalize the costs so that the sum of the three components is 1
-    total_preference = alpha + beta + gamma
-    alpha = alpha / total_preference
-    beta = beta / total_preference
-    gamma = gamma / total_preference
 
     # Initialize model
     model = gp.Model("multi_objective_shortest_path")
