@@ -43,6 +43,8 @@ def solve_model(start, end, preferences):
     coords_start = geocode_city(start)
     coords_end = geocode_city(end)
     
+    # TODO: Implement your logic here
+    
     return {
         "message": f"Solving model for {start} to {end}",
         "coords_start": coords_start,

@@ -168,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "airplane-engines.svg",
   ];
 
-  const iconCount = 3;
+  const iconCount = 8;
   const icons = [];
   const iconSize = 60; // px
 
