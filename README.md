@@ -86,6 +86,8 @@ This grid allows us to cover the US territory but should the user input a city t
 The second part was translating the problem into a linear programming problem. We used gurobipy to create a model that minimizes the cost of transportation while respecting the constraints of time and CO2 emissions. The model takes into account the user's preferences for speed, price, and sustainability.
 The solver uses the data from the database to find the optimal route between the two selected cities.
 
+Then we compute the best alternative routes using the same model. The user can select the best route based on their preferences, and the program will provide the best alternative routes as well.
+
 ### Frontend
 Then we developped a tool to visualize the results. The user can select the origin and destination cities, adjust the importance of time, cost, and CO2 emissions, and see the best route on a map. 
 
