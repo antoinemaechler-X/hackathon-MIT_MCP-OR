@@ -48,12 +48,14 @@ def add_city(city_df, routes_df, city_name,
             port_routes_path=intermediate_mari_path,
             geojson_path=geojson_path
         )
-        ship_routes_df["time"] = ship_routes_df.apply(lambda x: get_boat_time_proxy((x["distance"])))
+        ship_routes_df["time"] = ship_routes_df.apply(lambda x: get_boat_time_proxy((x["distance"])), axis=1)
     else:
-        ship_routes_df = pd.DataFrame(columns=["route_name", "olat", "olon", "dlat", "dlon"])
+        ship_routes_df = pd.DataFrame(columns=["route_name", "olat", "olon", "dlat", "dlon", "time", "distance",])
         
-
-    plane_routes_df = get_rp_routes(city_df, new_city, type="airplane")
+    if has_airport:
+        plane_routes_df = get_rp_routes(city_df, new_city, type="airplane")
+    else:
+        plane_routes_df = pd.DataFrame(columns=["route_name", "olat", "olon", "dlat", "dlon", "time", "distance",])
     road_routes_df = get_rp_routes(city_df, new_city, type="road")
 
     global_routes_df = pd.concat([

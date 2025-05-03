@@ -1,0 +1,31 @@
+name,has_airport,has_port
+New York,True,True
+Los Angeles,True,True
+Chicago,True,True
+Houston,True,False
+Phoenix,False,False
+Philadelphia,True,False
+San Antonio,True,False
+San Diego,False,True
+Dallas,True,False
+San Jose,True,False
+Austin,False,False
+Jacksonville,True,False
+Fort Worth,True,False
+Columbus,True,False
+Charlotte,False,False
+San Francisco,True,True
+Indianapolis,False,False
+Seattle,False,True
+Denver,True,False
+Washington,True,True
+Boston,False,True
+El Paso,True,False
+Nashville,False,False
+Detroit,True,False
+Oklahoma City,True,False
+Portland,False,False
+Las Vegas,True,False
+Memphis,True,False
+Baltimore,False,True
+Louisville,False,False
