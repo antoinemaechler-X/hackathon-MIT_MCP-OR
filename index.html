@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shipping Planner</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <div class="background" id="background-icons"></div>
+
+    <div class="shipping-container">
+      <input
+        type="text"
+        id="start"
+        class="shipping-input"
+        placeholder="Enter Starting Address..."
+      />
+      <input
+        type="text"
+        id="end"
+        class="shipping-input"
+        placeholder="Enter Arrival Address..."
+      />
+
+      <div class="comment-section">
+        <div class="comment-input">
+          <input type="text" id="comment" placeholder="Enter your comment" />
+          <button id="send">Send Comment</button>
+        </div>
+        <div id="comments"></div>
+      </div>
+
+      <button id="solve-model" class="shipping-button">
+        Find Best Shipping Plan
+      </button>
+    <div id="output"></div>
+  </div>
+  </body>
+  </html>
