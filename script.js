@@ -9,25 +9,48 @@ function prompt_model(comment) {
 }
 
 async function solve_model(start, end, preferences) {
-  return fetch("http://127.0.0.1:8000/api/solve", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      start,
-      end,
-      preferences,
-    }),
-  }).then((res) => res.json());
+  try {
+    const response = await fetch("http://127.0.0.1:8000/api/solve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        start,
+        end,
+        preferences,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("Backend response:", data); // Debug log
+    return data;
+  } catch (error) {
+    console.error("Error in solve_model:", error); // Debug log
+    throw error;
+  }
 }
 
 function initMap() {
-  // Initialize map centered on the US
-  map = L.map("map").setView([39.8283, -98.5795], 4);
+  try {
+    console.log("Initializing map..."); // Debug log
 
-  // Add OpenStreetMap tiles
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OpenStreetMap contributors",
-  }).addTo(map);
+    // Initialize map centered on the US
+    map = L.map("map").setView([39.8283, -98.5795], 4);
+    console.log("Map initialized:", map); // Debug log
+
+    // Add OpenStreetMap tiles
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+    }).addTo(map);
+
+    console.log("Tile layer added"); // Debug log
+  } catch (error) {
+    console.error("Error initializing map:", error); // Debug log
+    throw error;
+  }
 }
 
 // Colors for different transport modes
@@ -39,62 +62,68 @@ const TRANSPORT_COLORS = {
 };
 
 function drawRoute(route) {
+  console.log("Drawing route:", route); // Debug log
+
   // Clear any existing route
   if (window.routeLayer) {
     map.removeLayer(window.routeLayer);
   }
 
-  // Create a new layer for the route
-  window.routeLayer = L.layerGroup().addTo(map);
+  // Create a new layer group for the route
+  window.routeLayer = L.layerGroup();
+  map.addLayer(window.routeLayer);
 
   // Draw each segment of the route
   route.forEach((segment, index) => {
+    console.log("Drawing segment:", segment); // Debug log
     const { from, to, mode } = segment;
     const color = TRANSPORT_COLORS[mode] || "#000000";
 
-    // Create a curved line between the points
+    // Create a line between the points
     const latlngs = [
       [from[0], from[1]],
       [to[0], to[1]],
     ];
 
-    // Create a curved line using a bezier curve
-    const curve = L.curve(
-      [
-        "M",
-        latlngs[0],
-        "Q",
-        [
-          (latlngs[0][0] + latlngs[1][0]) / 2 + 2,
-          (latlngs[0][1] + latlngs[1][1]) / 2,
-        ],
-        latlngs[1],
-      ],
-      {
+    try {
+      // Create a straight line
+      const line = L.polyline(latlngs, {
         color: color,
         weight: 5,
         opacity: 0.7,
-        dashArray: mode === "airplane" ? "10, 10" : undefined, // Dashed line for airplane
+        dashArray: mode === "airplane" ? "10, 10" : undefined,
         className: `route-segment-${mode}`,
-      }
-    ).addTo(window.routeLayer);
+      });
+      line.addTo(window.routeLayer);
 
-    // Add a small circle at the start of each segment (except first)
-    if (index > 0) {
-      L.circleMarker(latlngs[0], {
-        radius: 5,
-        fillColor: color,
-        color: "#fff",
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 0.7,
-      }).addTo(window.routeLayer);
+      // Add a small circle at the start of each segment (except first)
+      if (index > 0) {
+        const circle = L.circleMarker(latlngs[0], {
+          radius: 5,
+          fillColor: color,
+          color: "#fff",
+          weight: 1,
+          opacity: 1,
+          fillOpacity: 0.7,
+        });
+        circle.addTo(window.routeLayer);
+      }
+    } catch (error) {
+      console.error("Error drawing route segment:", error);
     }
   });
 
-  // Fit the map to show the entire route
-  const bounds = window.routeLayer.getBounds();
-  map.fitBounds(bounds, { padding: [50, 50] });
+  // Get all the layers in the route layer group
+  const layers = window.routeLayer.getLayers();
+  if (layers.length > 0) {
+    // Create a bounds object that includes all the layers
+    const bounds = L.latLngBounds([]);
+    layers.forEach((layer) => {
+      bounds.extend(layer.getBounds());
+    });
+    // Fit the map to show all the layers
+    map.fitBounds(bounds, { padding: [50, 50] });
+  }
 }
 
 // Modify the existing updateMap function to handle routes
@@ -130,6 +159,45 @@ function updateMap(startCoords, endCoords, route = null) {
     ]);
     map.fitBounds(bounds, { padding: [50, 50] });
   }
+}
+
+// Add this function after the TRANSPORT_COLORS constant
+function createTransportIcon(mode) {
+  const iconMap = {
+    road: "🚗",
+    train: "🚂",
+    boat: "🚢",
+    airplane: "✈️",
+  };
+  return iconMap[mode] || "➡️";
+}
+
+function createRouteVisualization(route, start, end) {
+  const container = document.createElement("div");
+  container.className = "route-visualization";
+
+  // Create start city box
+  const startBox = document.createElement("div");
+  startBox.className = "city-box";
+  startBox.textContent = start;
+  container.appendChild(startBox);
+
+  // Create route segments
+  route.forEach((segment, index) => {
+    // Create transport arrow
+    const arrow = document.createElement("div");
+    arrow.className = "transport-arrow";
+    arrow.textContent = createTransportIcon(segment.mode);
+    container.appendChild(arrow);
+
+    // Create city box
+    const cityBox = document.createElement("div");
+    cityBox.className = "city-box";
+    cityBox.textContent = index === route.length - 1 ? end : segment.to;
+    container.appendChild(cityBox);
+  });
+
+  return container;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -195,19 +263,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const result = await solve_model(start, end, preferences);
-      document.getElementById("output").textContent = JSON.stringify(
-        result,
-        null,
-        2
-      );
 
       // Update map with coordinates and route if available
       if (result.coords_start && result.coords_end) {
         updateMap(result.coords_start, result.coords_end, result.route);
+
+        // Clear previous output
+        const outputDiv = document.getElementById("output");
+        outputDiv.innerHTML = "";
+
+        // Create and add route visualization
+        if (result.route && result.route.length > 0) {
+          const visualization = createRouteVisualization(
+            result.route,
+            start,
+            end
+          );
+          outputDiv.appendChild(visualization);
+        } else {
+          outputDiv.textContent = "No route segments found.";
+        }
+      } else {
+        document.getElementById("output").textContent =
+          "No route data received from backend.";
       }
     } catch (err) {
+      console.error("Error:", err);
       document.getElementById("output").textContent =
-        "Error contacting backend.";
+        "Error contacting backend: " + err.message;
     }
   });
 

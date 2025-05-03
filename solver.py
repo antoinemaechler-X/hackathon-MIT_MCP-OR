@@ -213,6 +213,17 @@ def solve_shortest_path(graph, source, target, alpha=1.0, beta=1.0, gamma=1.0):
     :param gamma: weight for carbon cost
     :return: (path list of nodes, objective value)
     """
+
+    # Scaling the costs so that the three components are on the same order of magnitude
+    # We use the means computed on the routes dataset
+    mean_time = 18
+    mean_cost = 148
+    mean_emissions = 234
+
+    alpha = alpha / mean_time
+    beta = beta / mean_cost
+    gamma = gamma / mean_emissions
+
     # Initialize model
     model = gp.Model("multi_objective_shortest_path")
     model.setParam('OutputFlag', 0)

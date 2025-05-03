@@ -62,11 +62,9 @@ def solve_model(start:str, end:str, preferences, city_path = "data/cities.csv",r
     # TODO: Implement your logic here
     
     return {
-        "message": f"Solving model for {start} to {end}",
         "coords_start": coords_start,
         "coords_end": coords_end,
-        "preferences": preferences,
-        "route": path
+        "route": route
     }
 
 def query_model(comment):
