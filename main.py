@@ -92,7 +92,11 @@ def solve_model(start:str, end:str, preferences, city_path = "data/cities.csv",r
         # Extract city names and transport modes
         current_city = current_node.split("_")[0]
         next_city = next_node.split("_")[0]
-        mode = current_node.split("_")[1]
+        # If the current city and the next city have different modes, use transit
+        if current_node.split("_")[1] != next_node.split("_")[1]:
+            mode = "transit"
+        else:
+            mode = current_node.split("_")[1]
         
         # Get coordinates for the cities and convert to lists
         current_coords = cities_df[cities_df["name"] == current_city][["lat", "lon"]].values[0].tolist()
@@ -103,12 +107,19 @@ def solve_model(start:str, end:str, preferences, city_path = "data/cities.csv",r
             "road": "road",
             "train": "train",
             "airplane": "airplane",
-            "ship": "boat"
+            "ship": "boat",
+            "transit": "transit"
         }
         
         route.append({
-            "from": current_coords,
-            "to": next_coords,
+            "from": {
+                "name": current_city,
+                "coords": current_coords
+            },
+            "to": {
+                "name": next_city,
+                "coords": next_coords
+            },
             "mode": mode_map.get(mode, "road")  # Default to road if mode not found
         })
     
