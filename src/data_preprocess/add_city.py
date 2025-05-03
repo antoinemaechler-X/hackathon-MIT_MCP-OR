@@ -29,7 +29,6 @@ def add_city(city_df, routes_df, city_name,
         "has_airport": has_airport,
         "has_port": False
     })
-    print(new_city)
     # check if the city already exists
     if city_name in city_df['name'].values:
         print(f"City {city_name} already exists in the DataFrame.")
@@ -56,6 +55,7 @@ def add_city(city_df, routes_df, city_name,
     road_routes_df = get_rp_routes(city_df, new_city, type="road")
 
     global_routes_df = pd.concat([
+        routes_df,
         plane_routes_df,
         road_routes_df,
         ship_routes_df
@@ -63,6 +63,7 @@ def add_city(city_df, routes_df, city_name,
     global_routes_df = global_routes_df[["type", "route_name", "origin", "destination",
                                           "time", "distance", "olat", "olon", "dlat", "dlon"]]
     global_routes_df = add_co2_and_price_df(global_routes_df)
+
 
     return city_df, global_routes_df
 
