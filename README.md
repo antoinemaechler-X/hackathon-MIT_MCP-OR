@@ -1,83 +1,80 @@
-# hackaton_MIT
+**Global AI MIT Hackathon Project: Optimal Freight Route Planner**  
+*Hackathon entry for the [Global AI MIT JHackathon](https://www.globalaihackathon.com/)*
+
+**Team Members (École Polytechnique)**
+
+- Mohamed Aloulou <mohamed.aloulou@polytechnique.edu>  
+- Hippolyte Wallaert <hippolyte.wallaert@polytechnique.edu>  
+- Antoine Maecheler <antoine.maecheler@polytechnique.edu>  
+- Édouard Rabasse <edouard.rabasse@polytechnique.edu>  
+---
 
 ## Project Overview
 
-This project provides an interactive interface to generate the optimal freight transport route between two cities, according to the importance given to time, cost, and environmental impact (CO₂ emissions). Users can select their origin and destination, adjust their preferences for speed, price, and sustainability, and instantly receive the best route using a multi-modal network (road, air, ship). The backend processes real-world data and computes the best solution based on your priorities.
+We have built an interactive application that computes the optimal freight transport route between two cities based on user-definable priorities: speed, cost, and environmental impact (CO₂ emissions).
+
+- **Origins & Destinations:** Users select any two cities.  
+- **Preferences:** Adjust sliders for time, price, and sustainability importance.  
+- **Multi-Modal Network:** Supports road, air, and sea segments.  
+- **Real-World Data:** Leverages geographical coordinates, transportation timetables, CO₂ emission estimates, and price data.  
+- **Dynamic Updates:** Incorporates live traffic, weather, or other user-provided conditions to recalculate the best route in real time.
 
 ---
 
-## Getting Started
+## Run the interface
+
+### Getting started
+Clone the repository and install dependencies:
 
 1. Navigate to the project directory:
     ```bash
-    cd hackaton_MIT
+    cd <repo_name>
     ```
 
-2. Install `uv` : 
-(on macOS, use Homebrew):
+2.  This project depends on the `uv` CLI. Please ensure it’s installed—if not, install it as follows : 
+- MacOS (Homebrew):
 ```bash
 brew install uv
 ```
 
-(on Linux, use apt or yum depending on your distribution):
+- Debian/Ubuntu:
 ```bash
 # For Debian/Ubuntu-based systems
 sudo apt update && sudo apt install uv
 
-# For Red Hat/CentOS-based systems
-sudo yum install uv
-```
 
-(on Windows, use Chocolatey):
+```
+- Windows (Chocolatey):
 ```bash
 choco install uv
 ```
 
-3. Create the .venv
+3. Create & Sync Virtual Environment
     ```bash
     uv sync
     ```
 
-4. To add a dependency, use:
-    ```bash
-    uv add <dependency-name>
-    ```
-
-5. To remove a dependency, use:
-    ```bash
-    uv remove <dependency-name>
-        ```
-
-6. To run a Python file, use:
-    ```bash
-    uv run python <file-name>.py
-    ```
-    or  activate the virtual environment, with:
-        ```bash
-        source .venv/bin/activate
-        ```
-    (on Windows, use `. .venv\Scripts\Activate.ps1`)                 
-    Once activated, you can run your Python file directly:
-        ```bash
-        python <file-name>.py
-        ```
-    
-        uv sync
-    will automatically install the dependencies listed in the requirements.txt file.
+### Running the interface
 
 
-## Running the app
-To run the app, you need to have a gurobi license (free for students and academics). You can get it from the [Gurobi website](https://www.gurobi.com/downloads/).
-launching the backend server:
+Run the backend server
 ```bash
-    uvicorn main:app --reload
+   uv run uvicorn main:app --reload
 ```
 Then in a new terminal, run the frontend:
 ```bash
     npm start
 ```
-Note : This requires Node.js and npm to be installed. If you don't have them, you can download them from [Node.js official website](https://nodejs.org/).
+Note : Ensure Node.js and npm are installed. Download them from [Node.js official website](https://nodejs.org/).
 
+## Use Claude via our custom MCP server
+We added Claude for real-time change detection and to provide the user with the best route at any time. The user can input traffic information, weather conditions, and other factors that may affect the route. 
+
+This functionality currently only works on macOS. Please make sure you’ve downloaded the Claude Desktop app (https://claude.ai/) and have an active subscription. Then install and run the MCP server via:
+
+```bash
+uv run mcp install csv_editor.py --name "Shipping MCP" --with-editable .
+```
 
 ## Project Structure
 ### Backend
@@ -95,5 +92,4 @@ Then we compute the best alternative routes using the same model. The user can s
 ### Frontend
 Then we developped a tool to visualize the results. The user can select the origin and destination cities, adjust the importance of time, cost, and CO2 emissions, and see the best route on a map. 
 
-## MCP
-We added Claude for real-time change detection and to provide the user with the best route at any time. The user can input traffic information, weather conditions, and other factors that may affect the route. The program will then recalculate the best route based on these inputs.
+
