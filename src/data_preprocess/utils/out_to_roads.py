@@ -8,6 +8,8 @@ import pandas as pd
 import json
 
 # Load your routes file
+
+SHIP_SPEED_KMH = 30  # Speed of the ship in km/h (example value)
 routes_df = pd.read_csv("data/port_routes.csv")  # Must have route_name, olon, olat, dlon, dlat
 
 # Load the GeoJSON file
@@ -35,10 +37,10 @@ def enrich_row(row):
             "type": route_props["type"],
             "origin": route_props["origin"],
             "destination": route_props["destination"],
-            "distance": route_props["distance"],
-            "time": route_props["time"],
+            "distance": float(route_props["distance"]),
             "CO2": route_props["CO2"],
             "price": route_props["price"],
+            "time": float(route_props["distance"])/SHIP_SPEED_KMH,  # Calculate time based on distance and speed
         })
     else:
         return pd.Series({
@@ -46,15 +48,20 @@ def enrich_row(row):
             "origin": None,
             "destination": None,
             "distance": None,
-            "time": None,
             "CO2": None,
             "price": None,
+            "time": None,
         })
 
-routes_df[["type", "origin", "destination", "distance", "time", "CO2", "price"]] = routes_df.apply(enrich_row, axis=1)
+routes_df[["type", "origin", "destination", "distance", "CO2", "price", "time"]] = routes_df.apply(enrich_row, axis=1)
+
+# check that time is not None
+
 
 # sort the columns
 routes_df = routes_df[["type", "route_name", "origin", "destination","time", "distance", "CO2", "price", "olon", "olat", "dlon", "dlat"]]
 
+print(routes_df.head())
+
 # Save to new file
-routes_df.to_csv("data/routes_with_maritime_info.csv", index=False)
+routes_df.to_csv("data/ship_routes.csv", index=False)
