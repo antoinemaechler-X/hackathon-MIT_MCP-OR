@@ -42,10 +42,22 @@ def geocode_city(city_name: str) -> tuple[float, float]:
     return lat, lon
 
 # --- Your model functions to implement ---
-def solve_model(start, end, preferences):
-    # Get coordinates using the existing geocode_city function
-    coords_start = geocode_city(start)
-    coords_end = geocode_city(end)
+def solve_model(start:str, end:str, preferences, city_path = "data/cities.csv",route_path = "data/routes.csv"):
+    cities_df = pd.read_csv(city_path)
+    routes_df = pd.read_csv(route_path)
+    cities_df, routes_df = add_city(cities_df, routes_df, start, has_airport=True)
+    cities_df, routes_df = add_city(cities_df, routes_df, end, has_airport=True)
+    coords_start = cities_df[cities_df["name"] == start][["lat", "lon"]].values[0]
+    coords_end = cities_df[cities_df["name"] == end][["lat", "lon"]].values[0]
+    graph = build_city_graph(cities_df, routes_df)
+    source_node = get_node(start)
+    target_node = get_node(end)
+    path, cost = solve_shortest_path(graph, source_node, target_node, preferences)
+
+
+
+    
+
     
     # TODO: Implement your logic here
     
@@ -54,7 +66,7 @@ def solve_model(start, end, preferences):
         "coords_start": coords_start,
         "coords_end": coords_end,
         "preferences": preferences,
-        "route": route
+        "route": path
     }
 
 def query_model(comment):
