@@ -86,6 +86,11 @@ function drawRoute(route) {
     ];
 
     try {
+      // Do not draw the line if the coordinates are the same
+      if (from.coords[0] === to.coords[0] && from.coords[1] === to.coords[1]) {
+        return;
+      }
+
       // Create a straight line
       const line = L.polyline(latlngs, {
         color: color,
@@ -175,6 +180,7 @@ function createTransportIcon(mode) {
     train: "🚂",
     boat: "🚢",
     airplane: "✈️",
+    transit: "⏳",
   };
   return iconMap[mode] || "➡️";
 }
@@ -191,6 +197,11 @@ function createRouteVisualization(route, start, end) {
 
   // Create route segments
   route.forEach((segment, index) => {
+    // Skip segments where start and end cities are the same
+    // if (segment.from.name === segment.to.name) {
+    //   return;
+    // }
+
     // Create transport arrow
     const arrow = document.createElement("div");
     arrow.className = "transport-arrow";
