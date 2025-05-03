@@ -109,8 +109,6 @@ def get_airplane_distance_and_time_proxy(coords1, coords2,
     return dist_km, total_time_h
 
 
-cities = pd.read_csv("data/cities.csv").to_dict(orient="records")
-routes = pd.read_csv("data/routes.csv").to_dict(orient="records")
 
 
 def build_city_graph(cities,routes):
@@ -262,7 +260,7 @@ def test_road_distance():
 if __name__ == "__main__":
     cities_df = pd.read_csv("data/cities.csv")
     routes_df = pd.read_csv("data/routes_clean.csv")
-    start = "Los Angeles"
+    start = "Vancouver"
     end = "Boston"
     from src.data_preprocess.add_city import add_city
     cities_df, routes_df = add_city(cities_df, routes_df, start, has_airport=False)
