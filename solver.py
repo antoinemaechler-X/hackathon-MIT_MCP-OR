@@ -157,49 +157,6 @@ def build_city_graph(cities,routes):
 
     return G
 
-# def build_edge_database(cities):
-#     city_nodes = {}
-
-#     # Création des nœuds par ville
-#     for city in cities:
-#         city_name = city["name"]
-#         nodes = {}
-#         nodes["storage"] = f"{city_name}_storage"
-#         nodes["road"] = f"{city_name}_road"
-#         nodes["train"] = f"{city_name}_train"
-#         if city.get("has_airport"):
-#             nodes["airplane"] = f"{city_name}_airplane"
-#         if city.get("has_port"):
-#             nodes["ship"] = f"{city_name}_ship"
-#         city_nodes[city_name] = nodes
-
-#     edge_db = []
-
-#     # Arêtes internes à la ville (clique)
-#     for nodes in city_nodes.values():
-#         node_list = list(nodes.values())
-#         for i in range(len(node_list)):
-#             for j in range(i + 1, len(node_list)):
-#                 edge_db.append({
-#                     "from_node": node_list[i],
-#                     "to_node": node_list[j],
-#                     "cost": (0, 0, 0)
-#                 })
-
-#     # Arêtes entre villes de même type (hors storage)
-#     types = ["road", "train", "airplane", "ship"]
-#     for t in types:
-#         nodes_of_type = [nodes[t] for nodes in city_nodes.values() if t in nodes]
-#         for i in range(len(nodes_of_type)):
-#             for j in range(i + 1, len(nodes_of_type)):
-#                 edge_db.append({
-#                     "from_node": nodes_of_type[i],
-#                     "to_node": nodes_of_type[j],
-#                     "cost": (0, 0, 0)
-#                 })
-
-#     return edge_db
-
 
 # -------------------- Gurobi Shortest Path Solver --------------------
 def solve_shortest_path(graph, source, target, alpha=1.0, beta=1.0, gamma=1.0):
@@ -211,7 +168,7 @@ def solve_shortest_path(graph, source, target, alpha=1.0, beta=1.0, gamma=1.0):
     :param alpha: weight for time cost
     :param beta: weight for monetary cost
     :param gamma: weight for carbon cost
-    :return: (path list of nodes, objective value)
+    :return: (path list of nodes, total_cost, time_cost, cost_cost, emissions_cost)
     """
 
     # Scaling the costs so that the three components are on the same order of magnitude
@@ -223,6 +180,12 @@ def solve_shortest_path(graph, source, target, alpha=1.0, beta=1.0, gamma=1.0):
     alpha = alpha / mean_time
     beta = beta / mean_cost
     gamma = gamma / mean_emissions
+
+    # Renormalize the costs so that the sum of the three components is 1
+    total_preference = alpha + beta + gamma
+    alpha = alpha / total_preference
+    beta = beta / total_preference
+    gamma = gamma / total_preference
 
     # Initialize model
     model = gp.Model("multi_objective_shortest_path")
@@ -243,30 +206,43 @@ def solve_shortest_path(graph, source, target, alpha=1.0, beta=1.0, gamma=1.0):
             model.addConstr(outflow - inflow == -1, name=f"flow_{node}")
         else:
             model.addConstr(outflow - inflow == 0, name=f"flow_{node}")
+
     # No storage node unless it is the source or target
     for node in graph.nodes():
         if graph.nodes[node].get("type") == "storage" and node not in [source, target]:
             model.addConstr(gp.quicksum(x[(u, v)] for u, v in graph.out_edges(node) if (u, v) in x) == 0, name=f"no_storage_{node}")
 
-    # Objective: weighted sum of the three cost components
-    objective = gp.quicksum(
-        (alpha * data['cost'][0] + beta * data['cost'][1] + gamma * data['cost'][2]) * x[(u, v)]
-        for u, v, data in graph.edges(data=True)
-    )
-    model.setObjective(objective, GRB.MINIMIZE)
+    # Objective: minimize weighted sum of costs
+    time_cost = gp.quicksum(x[(u, v)] * data['cost'][0] for u, v, data in graph.edges(data=True) if (u, v) in x)
+    cost_cost = gp.quicksum(x[(u, v)] * data['cost'][1] for u, v, data in graph.edges(data=True) if (u, v) in x)
+    emissions_cost = gp.quicksum(x[(u, v)] * data['cost'][2] for u, v, data in graph.edges(data=True) if (u, v) in x)
+    
+    total_cost = alpha * time_cost + beta * cost_cost + gamma * emissions_cost
+    model.setObjective(total_cost, GRB.MINIMIZE)
 
-    # Optimize
+    # Solve the model
     model.optimize()
 
-    # Extract selected edges and reconstruct path
-    selected = [(u, v) for (u, v), var in x.items() if var.X > 0.5]
-    subgraph = nx.DiGraph()
-    subgraph.add_edges_from(selected)
-    try:
-        path = nx.shortest_path(subgraph, source=source, target=target)
-    except nx.NetworkXNoPath:
-        path = selected
-    return path, model.ObjVal
+    if model.status == GRB.OPTIMAL:
+        # Extract the path using networkx
+        selected_edges = [(u, v) for (u, v), var in x.items() if var.X > 0.5]
+        subgraph = nx.DiGraph()
+        subgraph.add_edges_from(selected_edges)
+        
+        try:
+            path = nx.shortest_path(subgraph, source=source, target=target)
+        except nx.NetworkXNoPath:
+            raise Exception("No path found between source and target")
+
+        # Get the actual values of the costs
+        time_value = time_cost.getValue()
+        cost_value = cost_cost.getValue()
+        emissions_value = emissions_cost.getValue()
+        total_value = total_cost.getValue()
+
+        return path, total_value, time_value, cost_value, emissions_value
+    else:
+        raise Exception(f"No optimal solution found. Model status: {model.status}")
 
 def get_node(city_name):
     """
@@ -287,21 +263,3 @@ def test_road_distance():
     print(f"Road distance between New York and Boston: {distance:.2f} km")
     print(f"Estimated travel time: {time:.2f} hours")
 
-
-if __name__ == "__main__":
-    test_road_distance()
-    city_graph = build_city_graph(cities, routes)
-    source_node = get_node("New York")  # Example source node
-    target_node = get_node("Boston")  # Example target node
-    path, cost = solve_shortest_path(city_graph, source_node, target_node, alpha=10, beta=0.3, gamma=0.2)
-    print(f"Optimal path from {source_node} to {target_node}: {path}")
-    print(f"Weighted cost: {cost}")
-
-    print(f"Total nodes: {city_graph.number_of_nodes()}")
-    print("Sample nodes:", list(city_graph.nodes)[:10])
-
-    # Exemple d'utilisation
-    # # edge_database = build_edge_database(cities)
-    # print(f"Nombre d'arêtes: {len(edge_database)}")
-    # print("Exemple d'arêtes:", edge_database[:5])
-    # print(build_city_graph(cities,routes).nodes(data=True))

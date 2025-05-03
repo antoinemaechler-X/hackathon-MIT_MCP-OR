@@ -119,7 +119,14 @@ function drawRoute(route) {
     // Create a bounds object that includes all the layers
     const bounds = L.latLngBounds([]);
     layers.forEach((layer) => {
-      bounds.extend(layer.getBounds());
+      if (layer.getLatLngs) {
+        // For polylines
+        const latlngs = layer.getLatLngs();
+        latlngs.forEach((latlng) => bounds.extend(latlng));
+      } else if (layer.getLatLng) {
+        // For markers and circles
+        bounds.extend(layer.getLatLng());
+      }
     });
     // Fit the map to show all the layers
     map.fitBounds(bounds, { padding: [50, 50] });
@@ -196,6 +203,80 @@ function createRouteVisualization(route, start, end) {
     cityBox.textContent = index === route.length - 1 ? end : segment.to;
     container.appendChild(cityBox);
   });
+
+  return container;
+}
+
+function createCostHistogram(costs, title) {
+  const container = document.createElement("div");
+  container.className = "cost-histogram";
+
+  const canvas = document.createElement("canvas");
+  container.appendChild(canvas);
+
+  const ctx = canvas.getContext("2d");
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["Time", "Cost", "Emissions", "Total"],
+      datasets: [
+        {
+          label: title,
+          data: [costs.time, costs.cost, costs.emissions, costs.total],
+          backgroundColor: [
+            "rgba(255, 99, 132, 0.5)",
+            "rgba(54, 162, 235, 0.5)",
+            "rgba(75, 192, 192, 0.5)",
+            "rgba(153, 102, 255, 0.5)",
+          ],
+          borderColor: [
+            "rgba(255, 99, 132, 1)",
+            "rgba(54, 162, 235, 1)",
+            "rgba(75, 192, 192, 1)",
+            "rgba(153, 102, 255, 1)",
+          ],
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+        },
+      },
+    },
+  });
+
+  return container;
+}
+
+function createCostVisualization(costs) {
+  const container = document.createElement("div");
+  container.className = "cost-visualization";
+
+  // Create a row for the current preferences
+  const currentRow = document.createElement("div");
+  currentRow.className = "cost-row";
+  currentRow.appendChild(
+    createCostHistogram(costs.current, "Current Preferences")
+  );
+  container.appendChild(currentRow);
+
+  // Create a row for the three extreme cases
+  const extremesRow = document.createElement("div");
+  extremesRow.className = "cost-row";
+  extremesRow.appendChild(
+    createCostHistogram(costs.time_optimized, "Time Optimized")
+  );
+  extremesRow.appendChild(
+    createCostHistogram(costs.cost_optimized, "Cost Optimized")
+  );
+  extremesRow.appendChild(
+    createCostHistogram(costs.emissions_optimized, "Emissions Optimized")
+  );
+  container.appendChild(extremesRow);
 
   return container;
 }
@@ -280,6 +361,12 @@ document.addEventListener("DOMContentLoaded", () => {
             end
           );
           outputDiv.appendChild(visualization);
+
+          // Add cost visualization if available
+          if (result.costs) {
+            const costVisualization = createCostVisualization(result.costs);
+            outputDiv.appendChild(costVisualization);
+          }
         } else {
           outputDiv.textContent = "No route segments found.";
         }

@@ -328,3 +328,30 @@ body {
     transform: translateY(-5px);
   }
 }
+
+.cost-visualization {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.cost-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.cost-histogram {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  border-radius: 8px;
+  min-height: 300px;
+}
+
+.cost-histogram canvas {
+  width: 100% !important;
+  height: 100% !important;
+}

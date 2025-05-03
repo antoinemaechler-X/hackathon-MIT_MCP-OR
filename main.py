@@ -8,13 +8,14 @@ import pandas as pd
 
 app = FastAPI()
 
-# Allow requests from your frontend (CORS)
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For development only! Use your real domain in production.
+    allow_origins=["http://localhost:8080"],  # Your frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 def geocode_city(city_name: str) -> tuple[float, float]:
@@ -36,7 +37,7 @@ def geocode_city(city_name: str) -> tuple[float, float]:
     resp.raise_for_status()
     results = resp.json()
     if not results:
-        raise ValueError(f"No location found for “{city_name}”")
+        raise ValueError(f'No location found for "{city_name}"')
     lat = float(results[0]["lat"])
     lon = float(results[0]["lon"])
     return lat, lon
@@ -47,24 +48,98 @@ def solve_model(start:str, end:str, preferences, city_path = "data/cities.csv",r
     routes_df = pd.read_csv(route_path)
     cities_df, routes_df = add_city(cities_df, routes_df, start, has_airport=True)
     cities_df, routes_df = add_city(cities_df, routes_df, end, has_airport=True)
-    coords_start = cities_df[cities_df["name"] == start][["lat", "lon"]].values[0]
-    coords_end = cities_df[cities_df["name"] == end][["lat", "lon"]].values[0]
-    graph = build_city_graph(cities_df, routes_df)
+    
+    # Convert coordinates to lists for JSON serialization
+    coords_start = cities_df[cities_df["name"] == start][["lat", "lon"]].values[0].tolist()
+    coords_end = cities_df[cities_df["name"] == end][["lat", "lon"]].values[0].tolist()
+    
+    # Convert DataFrames to dictionaries
+    cities_dict = cities_df.to_dict(orient="records")
+    routes_dict = routes_df.to_dict(orient="records")
+    
+    graph = build_city_graph(cities_dict, routes_dict)
     source_node = get_node(start)
     target_node = get_node(end)
-    path, cost = solve_shortest_path(graph, source_node, target_node, preferences)
-
-
-
     
+    alpha = preferences["timeImportance"]
+    beta = preferences["costImportance"]
+    gamma = preferences["emissionsImportance"]
+    path, total_cost, time_cost, cost_cost, emissions_cost = solve_shortest_path(graph, source_node, target_node, alpha, beta, gamma)
 
+    # Now query the cost given extreme preferences
+    _, total_cost_time_opt, time_cost_time_opt, cost_cost_time_opt, cost_emissions_time_opt = solve_shortest_path(graph, source_node, target_node, 1.0, 0.0, 0.0)
+    _, total_cost_cost_opt, cost_cost_cost_opt, cost_time_cost_opt, cost_emissions_cost_opt = solve_shortest_path(graph, source_node, target_node, 0.0, 1.0, 0.0)
+    _, total_cost_emissions_opt, time_cost_emissions_opt, cost_cost_emissions_opt, cost_emissions_emissions_opt = solve_shortest_path(graph, source_node, target_node, 0.0, 0.0, 1.0)
     
-    # TODO: Implement your logic here
+    # Create route segments
+    route = []
+    for i in range(len(path) - 1):
+        current_node = path[i]
+        next_node = path[i + 1]
+        
+        # Skip storage nodes
+        if "storage" in current_node or "storage" in next_node:
+            continue
+            
+        # Extract city names and transport modes
+        current_city = current_node.split("_")[0]
+        next_city = next_node.split("_")[0]
+        mode = current_node.split("_")[1]
+        
+        # Get coordinates for the cities and convert to lists
+        current_coords = cities_df[cities_df["name"] == current_city][["lat", "lon"]].values[0].tolist()
+        next_coords = cities_df[cities_df["name"] == next_city][["lat", "lon"]].values[0].tolist()
+        
+        # Map mode to the correct format
+        mode_map = {
+            "road": "road",
+            "train": "train",
+            "airplane": "airplane",
+            "ship": "boat"
+        }
+        
+        route.append({
+            "from": current_coords,
+            "to": next_coords,
+            "mode": mode_map.get(mode, "road")  # Default to road if mode not found
+        })
+    
+    # Convert Gurobi LinExpr objects to regular Python numbers
+    def convert_cost(cost):
+        if hasattr(cost, 'getValue'):
+            return float(cost.getValue())
+        return float(cost)
     
     return {
         "coords_start": coords_start,
         "coords_end": coords_end,
-        "route": route
+        "route": route,
+        "costs": {
+            "current": {
+                "total": convert_cost(total_cost),
+                "time": convert_cost(time_cost),
+                "cost": convert_cost(cost_cost),
+                "emissions": convert_cost(emissions_cost)
+            },
+            "time_optimized": {
+                "total": convert_cost(total_cost_time_opt),
+                "time": convert_cost(time_cost_time_opt),
+                "cost": convert_cost(cost_cost_time_opt),
+                "emissions": convert_cost(cost_emissions_time_opt)
+            },
+            "cost_optimized": {
+                "total": convert_cost(total_cost_cost_opt),
+                "time": convert_cost(cost_time_cost_opt),
+                "cost": convert_cost(cost_cost_cost_opt),
+                "emissions": convert_cost(cost_emissions_cost_opt)
+            },
+            "emissions_optimized": {
+                "total": convert_cost(total_cost_emissions_opt),
+                "time": convert_cost(time_cost_emissions_opt),
+                "cost": convert_cost(cost_cost_emissions_opt),
+                "emissions": convert_cost(cost_emissions_emissions_opt)
+            }
+        }
     }
 
 def query_model(comment):
