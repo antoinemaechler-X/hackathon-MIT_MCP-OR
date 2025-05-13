@@ -5,7 +5,7 @@
 
 - Mohamed Aloulou <mohamed.aloulou@polytechnique.edu>  
 - Hippolyte Wallaert <hippolyte.wallaert@polytechnique.edu>  
-- Antoine Maecheler <antoine.maecheler@polytechnique.edu>  
+- Antoine Maechler <antoine.maecheler@polytechnique.edu>  
 - Édouard Rabasse <edouard.rabasse@polytechnique.edu>  
 ---
 
