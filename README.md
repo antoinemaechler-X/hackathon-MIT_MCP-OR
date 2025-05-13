@@ -1,6 +1,8 @@
 **Global AI MIT Hackathon Project: Optimal Freight Route Planner**  
 *Hackathon entry for the [Global AI MIT JHackathon](https://www.globalaihackathon.com/)*
 
+**Ranked finalist (top 10) among 105 preselected teams.**
+
 **Team Members (École Polytechnique)**
 
 - Mohamed Aloulou <mohamed.aloulou@polytechnique.edu>  
@@ -12,6 +14,8 @@
 ## Project Overview
 
 We have built an interactive application that computes the optimal freight transport route between two cities based on user-definable priorities: speed, cost, and environmental impact (CO₂ emissions).
+
+Demo: https://drive.google.com/file/d/1pFQb0s9Ncn8Yhebxxxq9pPmqR08rcY7l/view?usp=share_link
 
 - **Origins & Destinations:** Users select any two cities.  
 - **Preferences:** Adjust sliders for time, price, and sustainability importance.  
